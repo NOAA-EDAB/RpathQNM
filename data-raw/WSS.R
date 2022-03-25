@@ -153,6 +153,8 @@ WSS.params <- rpath.stanzas(WSS.params)
 ped <- data.table::as.data.table(read.csv(here::here('data-raw', 'Pedigree_Full.csv')))
 
 WSS.params$pedigree[, 2:6] <- ped[, 3:7]
+
+#export params
 usethis::use_data(WSS.params, overwrite = TRUE)
 
 #Ecopath
