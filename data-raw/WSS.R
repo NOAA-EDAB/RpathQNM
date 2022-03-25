@@ -1,7 +1,7 @@
 ## Western Scotian Shelf model
 #-------------------------------------------------------------------------------
 #Required packages
-library(data.table); library(Rpath); library(here)
+library(data.table); library(Rpath); library(here); library(readxl)
 
 #-------------------------------------------------------------------------------
 #User created functions
@@ -148,6 +148,12 @@ WSS.params$stanzas$stindiv[, Leading := c(F, F, F, T, F, F, T, F, F, T, rep(c(F,
 #The calculated biomasses are different than EwE because of the BA terms...will investigate further
 #Removed BioAcc for stanza groups and this works close enough (rounding errors)
 WSS.params <- rpath.stanzas(WSS.params)
+
+#pedigrees
+ped <- data.table::as.data.table(read.csv(here::here('data-raw', 'Pedigree_Full.csv')))
+
+WSS.params$pedigree[, 2:6] <- ped[, 3:7]
+usethis::use_data(WSS.params, overwrite = TRUE)
 
 #Ecopath
 WSS <- rpath(WSS.params, 'Western Scotian Shelf')
