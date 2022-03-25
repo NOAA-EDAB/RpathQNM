@@ -16,7 +16,7 @@ load(here('data', 'WSS.rda'))
 
 #Need to fix GB pedigree file - bigger issue to fix eventually!
 WSS.params$pedigree <- WSS.params$pedigree[Group != 'Fleet1', ]
-
+WSS.params$pedigree[Group %in% c('Discards', 'Detritus'), Biomass := 0.1]
 
 #Test dynamic run
 # GB.scene <- rsim.scenario(GB, GB.params, years = 2014:2113)
@@ -25,28 +25,28 @@ WSS.params$pedigree <- WSS.params$pedigree[Group != 'Fleet1', ]
 # rsim.plot(GB.testrun, GB.params$model[Type < 3, Group])
 
 #Set up sense runs
-all_years <- 2014:2063
-scene <- rsim.scenario(GB, GB.params, years = all_years)
+all_years <- 1:100
+scene <- rsim.scenario(WSS, WSS.params, years = all_years)
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 1000
+NUM_RUNS <- 3000
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
 set.seed(123)
 for (irun in 1:NUM_RUNS){
-  GBsense <- copy(scene) 
+  WSSsense <- copy(scene) 
   # INSERT SENSE ROUTINE BELOW
-  parlist[[irun]] <- GBsense$params 		# Base ecosim params
-  parlist[[irun]] <- rsim.sense(GBsense, GB.params)	# Replace the base params with Ecosense params  
-  GBsense$start_state$Biomass <- parlist[[irun]]$B_BaseRef
+  parlist[[irun]] <- WSSsense$params 		# Base ecosim params
+  parlist[[irun]] <- rsim.sense(WSSsense, WSS.params)	# Replace the base params with Ecosense params  
+  WSSsense$start_state$Biomass <- parlist[[irun]]$B_BaseRef
   parlist[[irun]]$BURN_YEARS <- 50			# Set Burn Years to 50
-  GBsense$params <- parlist[[irun]]
-  GBtest <- rsim.run(GBsense, method = "RK4", years = all_years)
-  failList <- which(is.na(GBtest$end_state$Biomass))
+  WSSsense$params <- parlist[[irun]]
+  WSStest <- rsim.run(WSSsense, method = "RK4", years = all_years)
+  failList <- which(is.na(WSStest$end_state$Biomass))
   {if (length(failList)>0)
-  {cat(irun,": fail in year ",GBtest$crash_year,": ",failList,"\n"); kept[irun] <- F; flush.console()}
+  {cat(irun,": fail in year ",WSStest$crash_year,": ",failList,"\n"); kept[irun] <- F; flush.console()}
     else 
     {cat(irun,": success!\n"); kept[irun]<-T;  flush.console()}}
   parlist[[irun]]$BURN_YEARS <- 1
@@ -57,8 +57,8 @@ KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
 # 1104 / 30000 = 3.6%
-GB.sense <- parlist[KEPT]
-save(GB.sense, file = file.path(data.dir, 'GB_ecosense_valid.RData'))
+WSS.sense <- parlist[KEPT]
+save(WSS.sense, file = file.path(data.dir, 'WSS_ecosense_valid.RData'))
 
 #Run scenario-----
 #Set 1----
