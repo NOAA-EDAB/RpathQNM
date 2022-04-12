@@ -1,29 +1,29 @@
 GroupNum,Group,Biomass,PB,QB,Diet ,Fishery,ByCatch
-1,Whales,0.3,0.5,0.5,0.5,0,0.5
-2,Toothed cetaceans,0.3,0.5,0.5,0.5,0,0.5
-3,Seals,0.6,0.3,0.3,0.5,0,0.5
-4,Sea birds,0.5,0.5,0.5,0.5,0,0.5
+1,Whales,0.3,0.5,0.5,0.5,0.2,0.5
+2,Toothed cetaceans,0.3,0.5,0.5,0.5,0.2,0.5
+3,Seals,0.6,0.3,0.3,0.5,0.2,0.5
+4,Sea birds,0.5,0.5,0.5,0.5,0.2,0.5
 5,Sharks,0.3,0.4,0.4,0.3,0.5,0.5
 6,Large pelagic,0.5,0.3,0.4,0.5,0.3,0.5
 7,D_PISC,0.3,0.3,0.3,0.5,0.3,0.3
 8,L benthivores,0.3,0.3,0.3,0.5,0.3,0.3
 9,Skates,0.3,0.3,0.3,0.5,0.3,0.3
 10,SmPEL_Comm,0.5,0.5,0.3,0.5,0.3,0.3
-11,Mesopelagic,0.8,0.7,0.7,0.7,,0.5
-12,Squids,0.7,0.5,0.5,0.7,,0.5
+11,Mesopelagic,0.8,0.7,0.7,0.7,0.2,0.5
+12,Squids,0.7,0.5,0.5,0.7,0.2,0.5
 13,Megabenthos_O,0.6,0.6,0.8,0.7,0.1,0.5
-14,Small crabs / Other arthropoda,0.6,0.5,0.8,0.7,,
-15,Shrimps,0.8,0.5,0.8,0.5,0.1,
-16,Bivalves,0.6,0.5,0.8,0.7,0.1,
-17,Other molluscs,0.6,0.5,0.8,0.7,,
-18,Worms,0.6,0.5,0.8,0.7,,
-19,Meiofauna / Sessile benthic groups / Echinoderms,0.6,0.5,0.8,0.7,,
-20,Gelatinous zoop,0.5,0.6,0.6,0.6,,
-21,Macrozoop,0.3,0.5,0.5,0.6,,
-22,Mesozoop,0.3,0.5,0.5,0.6,,
-23,Microzoop,0.8,0.6,0.6,0.6,,
-24,Microflora,0.8,0,0,0,,
-25,Phytoplankton,0.5,0,0,0,,
-26,Discards,,,,,,
-27,Detritus,,,,,,
-28,Fishery,,,,,,
+14,Small crabs / Other arthropoda,0.6,0.5,0.8,0.7,0.2,0.2
+15,Shrimps,0.8,0.5,0.8,0.5,0.1,0.2
+16,Bivalves,0.6,0.5,0.8,0.7,0.1,0.2
+17,Other molluscs,0.6,0.5,0.8,0.7,0.2,0.2
+18,Worms,0.6,0.5,0.8,0.7,0.2,0.2
+19,Meiofauna / Sessile benthic groups / Echinoderms,0.6,0.5,0.8,0.7,0.2,0.2
+20,Gelatinous zoop,0.5,0.6,0.6,0.6,0.2,0.2
+21,Macrozoop,0.3,0.5,0.5,0.6,0.2,0.2
+22,Mesozoop,0.3,0.5,0.5,0.6,0.2,0.2
+23,Microzoop,0.8,0.6,0.6,0.6,0.2,0.2
+24,Microflora,0.8,0,0,0,0.2,0.2
+25,Phytoplankton,0.5,0,0,0,0.2,0.2
+26,Discards,0.8,0,0,0,0.2,0.2
+27,Detritus,0.8,0,0,0,0.2,0.2
+28,Fishery,0,0,0,0,0,0

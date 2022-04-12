@@ -146,7 +146,16 @@ WSS28 <- rpath(WSS28.params, 'Western Scotian Shelf')
 
 usethis::use_data(WSS28, overwrite = TRUE)
 
+#Ecosim test
+WSS28.scene <- rsim.scenario(WSS28, WSS28.params)
+
+#Fix No Integrate
+WSS28.scene$params$NoIntegrate["Microzoop"] <- 0
+WSS28.scene$params$NoIntegrate["Microflora"] <- 0
+
+WSS28.run <- rsim.run(WSS28.scene, method = 'AB')
 
 
+rsim.plot(WSS28.run)
 
 
