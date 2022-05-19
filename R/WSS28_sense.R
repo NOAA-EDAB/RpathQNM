@@ -38,7 +38,7 @@ rsim.plot(WSS28.run)
 
 # ----- Set up ecosense generator ----- #######################################
 scene$params$BURN_YEARS <- 50
-NUM_RUNS <- 3e5
+NUM_RUNS <- 4e5
 parlist <- as.list(rep(NA, NUM_RUNS))
 kept <- rep(NA, NUM_RUNS)
 
@@ -68,5 +68,6 @@ nkept/NUM_RUNS
 #0.0029
 
 WSS28.sense <- parlist[KEPT]
-save(WSS28.sense, file = file.path(data.dir, 'WSS28_ecosense_valid.RData'))
+usethis::use_data(WSS28.sense, overwrite = TRUE)
+
 
