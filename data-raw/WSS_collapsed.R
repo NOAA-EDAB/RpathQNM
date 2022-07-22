@@ -27,7 +27,7 @@ groups <- c('Whales', 'Toothed cetaceans', 'Seals', 'Sea birds', 'Sharks',
 types <- c(rep(0, 42), 1, 2, 2, 3)
 
 #Create parameter list object
-WSS.params <- create.rpath.params(groups, types)
+WSS46.params <- create.rpath.params(groups, types)
 
 #Fill in model parameters
 #Biomass, Production, consumption
@@ -50,30 +50,30 @@ qb <- c(4.94, 14.5, 7.338632, 87.6, 4.78, 4.24, 2.22494, 6.00205, 2.020085,
         2.609985, 5.740644, 3.326162, 3.31, 5.08, 18.9, 4.7, 11.33333, rep(NA, 12), 
         62.05, 19.5, 73, rep(NA, 6))
 
-WSS.params$model[, Biomass := biomass]
-WSS.params$model[, PB      := pb]
-WSS.params$model[, QB      := qb]
+WSS46.params$model[, Biomass := biomass]
+WSS46.params$model[, PB      := pb]
+WSS46.params$model[, QB      := qb]
 
 #Production to Consumption
-WSS.params$model[Group %in% c('Lobster', 'Large crabs', 'Small crabs', 'Shrimps', 
+WSS46.params$model[Group %in% c('Lobster', 'Large crabs', 'Small crabs', 'Shrimps', 
                               'Scallop', 'Bivalves', 'Other molluscs', 'Other arthropoda', 
                               'Echinoderms', 'Sessile benthic groups', 'Worms', 
                               'Meiofauna'),
                  ProdCons := 0.15]
-WSS.params$model[Group == 'Mesozoop', ProdCons := 0.4]
-WSS.params$model[Group %in% c('Microzoop', 'Microflora'), ProdCons := 0.5]
+WSS46.params$model[Group == 'Mesozoop', ProdCons := 0.4]
+WSS46.params$model[Group %in% c('Microzoop', 'Microflora'), ProdCons := 0.5]
 
 #Biomass accumulation and unassimilated production
 ba <- c(0.0032566, 0, 0.003702101, 0, -0.001951868, 0, -0.02876313, 0, 0, 
         -0.01130184, -0.01730067, -0.01559776, rep(0, 3), -0.01010211, 0,
         0.07668997, -0.00674393, rep(0, 6), 0.0301295, rep(0, 3), 0.03234285,
         rep(0, 15), NA)
-WSS.params$model[, BioAcc  := ba]
-WSS.params$model[, Unassim := c(rep(0.2, 38), rep(0.4, 3), 0.2, rep(0, 3), NA)]
+WSS46.params$model[, BioAcc  := ba]
+WSS46.params$model[, Unassim := c(rep(0.2, 38), rep(0.4, 3), 0.2, rep(0, 3), NA)]
 
 #Detrital fate
-WSS.params$model[, Detritus := c(rep(1, 43), rep(0, 3))]
-WSS.params$model[, Discards := c(rep(0, 45), 1)]
+WSS46.params$model[, Detritus := c(rep(1, 43), rep(0, 3))]
+WSS46.params$model[, Discards := c(rep(0, 45), 1)]
 
 #Landings/Discards
 land <- c(rep(0, 4), 0.00209077, 0.005067847, 0.116104, 0.036881, 0.003272,
@@ -86,8 +86,8 @@ disc <- c(0, 0.002995, 0, 2.4E-05, 0.000575, 0.000469, 0.000286, 9.6E-05, 0.0003
           0.000372, 0.000111, 0.000883, 0.000211, 0.00056, 0.000276, 0, 0.000236,
           1.9E-05, 0.001526, 0.00725, 0.000633, 8E-06, 0, 0, 4.1E-05, 0, 0.016926,
           0.002943, rep(0, 10), NA)
-WSS.params$model[, Fleet1      := land]
-WSS.params$model[, Fleet1.disc := disc]
+WSS46.params$model[, Fleet1      := land]
+WSS46.params$model[, Fleet1.disc := disc]
 
 #Diet composition
 DC.groups <- groups[which(!groups %in% c('Discards', 'Detritus', 'Fleet1'))]
@@ -141,18 +141,19 @@ DC.data <- as.data.table(matrix(c(
   46, 43, byrow = T))
 
 #Merge DC matrix with diet parameter object
-WSS.params$diet <- cbind(WSS.params$diet[, Group], DC.data)
+WSS46.params$diet <- cbind(WSS.params$diet[, Group], DC.data)
 #Fix column names
-setnames(WSS.params$diet, 1, 'Group')
-setnames(WSS.params$diet, paste0('V', 1:43), DC.groups)
+setnames(WSS46.params$diet, 1, 'Group')
+setnames(WSS46.params$diet, paste0('V', 1:43), DC.groups)
 
 #Ecopath
-WSS <- rpath(WSS.params, 'Western Scotian Shelf')
+WSS46 <- rpath(WSS46.params, 'Western Scotian Shelf')
 
 #pedigrees
+#Need to get the right pedigree file loaded...Pedigree_Agg is for the 28 model
 ped <- data.table::as.data.table(read.csv(here::here('data-raw', 'Pedigree_Agg.csv')))
 
-WSS.params$pedigree[, 2:6] <- ped[, 3:7]
+WSS46.params$pedigree[, 2:6] <- ped[, 3:7]
 
 #export params
 usethis::use_data(WSS.params, overwrite = TRUE)
