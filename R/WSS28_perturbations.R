@@ -47,60 +47,93 @@ rsim.plot(run2)
 load(here('data', 'WSS28.sense.rda'))
 #Will only use the first 1000 parameter sets
 
-#Phytoplankton
-phyto.output <- c()
+#Set-up output
+output <- c()
 set.seed(123)
 #Set-up scenario
 #base
 base.scene <- rsim.scenario(WSS28, WSS28.params, years = all_years)
 
 for(irun in 1:1000){
-    #Set-up scenario
-    #base
+    #Use base scenario for comparison and replace with ecosense params 
     run.scene <- copy(base.scene)
-    
-    #Import sense parameters
     run.scene$params <- WSS28.sense[[irun]]
+    
     #Fix No Integrate flags
     run.scene$params$NoIntegrate["Microzoop"] <- 0
     run.scene$params$NoIntegrate["Microflora"] <- 0
     
     # Run without a perturbation to get the biomass value
-    run1 <- rsim.run(run.scene, method = 'AB', years = all_years)
+    base <- rsim.run(run.scene, method = 'AB', years = all_years)
     
     #Diagnostic plots
-    plot(run1$annual_Biomass[, 26])
-    rsim.plot(run1)
+    #plot(base$annual_Biomass[, 26])
+    #rsim.plot(base)
     
     #Calculate baseline biomass values
-    bio <- as.data.table(run1$annual_Biomass)
+    bio <- as.data.table(base$annual_Biomass)
     bio.mean.base <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
     
-    #Adjust biomass by 10%
-    #Grab reference biomass value (group 26 is Phytoplankton)
-    bio.ref <- bio.mean.base[, 26]
+    #Run perturbations - Living groups
+    Groups <- c('Phytoplankton', 'Small pelagics', 'Seals')
+    for(igrp in 1:3){
+        #Grab reference biomass value
+        bio.ref <- bio.mean.base[, .SD, .SDcol = Groups[igrp]]
+        
+        #Adjust biomass up by 10%
+        plus.scene <- copy(run.scene)
+        plus.scene <- adjust.forcing(plus.scene, parameter = 'ForcedBio', 
+                                     group = Groups[igrp], sim.year = 11:100, 
+                                     value = as.numeric(bio.ref + bio.ref * 0.1))
+        plus <- rsim.run(plus.scene, years = all_years, method = 'AB')
+        
+        #Diagnostic plots
+        #plot(plus$annual_Biomass[, 26])
+        #rsim.plot(plus)
+        
+        #Calculate perturbed biomass
+        bio <- as.data.table(plus$annual_Biomass)
+        bio.mean.plus <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+        
+        #Save difference between base and perturbed
+        plus.output <- bio.mean.plus - bio.mean.base
+        
+        #Add meta data
+        plus.output[, Group := Groups[igrp]]
+        plus.output[, Direction := 'Plus']
+        
+        #Adjust biomass down by 10%
+        neg.scene <- copy(run.scene)
+        neg.scene <- adjust.forcing(neg.scene, parameter = 'ForcedBio', 
+                                    group = Groups[igrp], sim.year = 11:100, 
+                                    value = as.numeric(bio.ref - bio.ref * 0.1))
+        neg <- rsim.run(neg.scene, years = all_years, method = 'AB')
+        
+        #Diagnostic plots
+        #plot(neg$annual_Biomass[, 26])
+        #rsim.plot(neg)
+        
+        #Calculate perturbed biomass
+        bio <- as.data.table(neg$annual_Biomass)
+        bio.mean.neg <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+        
+        #Save difference between base and perturbed
+        neg.output <- bio.mean.neg - bio.mean.base
+        
+        #Add meta data
+        neg.output[, Group := Groups[igrp]]
+        neg.output[, Direction := 'Minus']
+        
+        #Append output
+        output <- rbindlist(list(output, plus.output, neg.output))
+    }
     
-    pert.scene <- copy(run.scene)
-    pert.scene <- adjust.forcing(pert.scene, parameter = 'ForcedBio', 
-                                 group = 'Phytoplankton', sim.year = 11:100, 
-                                 value = as.numeric(bio.ref + bio.ref * 0.1))
-    run2 <- rsim.run(pert.scene, years = all_years, method = 'AB')
+    #Run perturbations - Fishery
     
-    #Diagnostic plots
-    plot(run2$annual_Biomass[, 26])
-    rsim.plot(run2)
-    
-    #Calculate perturbed biomass
-    bio <- as.data.table(run2$annual_Biomass)
-    bio.mean.2 <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
-    
-    #Save difference between base and perturbed
-    run.output <- bio.mean.2 - bio.mean.base
     
     #Counter
     cat("Model", irun,": processed\n")
     flush.console()
-    phyto.output <- rbindlist(list(phyto.output, run.output))
 }
 
 phyto.output[, lapply(.SD, function(x) sum(x > 0))]  
