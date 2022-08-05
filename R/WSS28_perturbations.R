@@ -129,15 +129,62 @@ for(irun in 1:1000){
     }
     
     #Run perturbations - Fishery
+    #Adjust effort up by 10%
+    plus.scene <- copy(run.scene)
+    plus.scene <- adjust.fishing(plus.scene, parameter = 'ForcedEffort', 
+                                 group = 'Fishery', sim.year = 11:100, 
+                                 value = 1.1)
+    plus <- rsim.run(plus.scene, years = all_years, method = 'AB')
     
+    #Diagnostic plots
+    #plot(plus$annual_Biomass[, 26])
+    #rsim.plot(plus)
+    
+    #Calculate perturbed biomass
+    bio <- as.data.table(plus$annual_Biomass)
+    bio.mean.plus <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+    
+    #Save difference between base and perturbed
+    plus.output <- bio.mean.plus - bio.mean.base
+    
+    #Add meta data
+    plus.output[, Group := 'Fishery']
+    plus.output[, Direction := 'Plus']
+    
+    #Adjust effort down by 10%
+    neg.scene <- copy(run.scene)
+    neg.scene <- adjust.fishing(neg.scene, parameter = 'ForcedEffort', 
+                                group = 'Fishery', sim.year = 11:100, 
+                                value = 0.9)
+    neg <- rsim.run(neg.scene, years = all_years, method = 'AB')
+    
+    #Diagnostic plots
+    #plot(plus$annual_Biomass[, 26])
+    #rsim.plot(plus)
+    
+    #Calculate perturbed biomass
+    bio <- as.data.table(neg$annual_Biomass)
+    bio.mean.neg <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+    
+    #Save difference between base and perturbed
+    neg.output <- bio.mean.neg - bio.mean.base
+    
+    #Add meta data
+    neg.output[, Group := 'Fishery']
+    neg.output[, Direction := 'Minus']
+    
+    #Append output
+    output <- rbindlist(list(output, plus.output, neg.output))
     
     #Counter
     cat("Model", irun,": processed\n")
     flush.console()
 }
 
-phyto.output[, lapply(.SD, function(x) sum(x > 0))]  
-
+#Summarize output
+WSS28.results <- output[, lapply(.SD, function(x) sum(x > 0)), 
+                        by = c('Group', 'Direction')]  
+usethis::use_data(WSS28.results, overwrite = TRUE)
 
 
 
