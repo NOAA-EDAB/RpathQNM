@@ -4,16 +4,17 @@ author: "Jamie"
 date: "3/18/2022"
 output: html_document
 ---
-
+## Setup
 ```{r}
 require(devtools)
 require(Rtools)
 require(data.table)
 require (Rpath)
 require(QPress)
+require(tidyverse)
 # install_github("NOAA-EDAB/Rpath")
 # install_github("SWotherspoon/QPress")
-
+#p
 ```
 
 
@@ -225,20 +226,59 @@ out <- data.frame(Group    = x$Group[1:ngroup],
                   type     = x$type [1:ngroup],
                   PB       = x$PB   [1:ngroup])
 #Calculate F mortality
-totcatch <- x$Catch + x$Discards
-Fmort    <- as.data.frame(totcatch / x$BB[row(as.matrix(totcatch))])
-setnames(Fmort, paste('V',  1:x$NUM_GEARS,                     sep = ''), 
-         paste('F.', x$Group[(ngroup +1):x$NUM_GROUPS], sep = ''))
+# totcatch <- x$Catch + x$Discards
+totcatch <- x$Landings + x$Discards
+Fmort    <- as.data.frame(totcatch / x$Biomass[row(as.matrix(totcatch))])
+# setnames(Fmort, 'Fleet1', 'Fishery')
+# Fmort    <- as.data.frame(totcatch / x$Biomass[row(as.matrix(totcatch))])
+# setnames(Fmort, paste('V',  1:x$NUM_GEARS, sep = ''),
+#          paste('F.', x$Group[(ngroup +1):x$NUM_GROUPS], sep = ''))
 out  <- cbind(out, Fmort[1:ngroup, ])
 setnames(out, 'Fmort[1:ngroup, ]', 'Fishery')
+
+
+# pred.cols <- names(qpress.prey)[which(names(qpress.prey) != 'Group')]
+# 
+# qpress.prey <- qpress.prey[Group != 'Import']
+# 
+# #Ensure that the matrices are square
+# detritus.DC <- data.table(Group = qpress.prey[, Group], Detritus = 0, Discards = 0)
+# qpress.prey <- merge(qpress.prey, detritus.DC, by = 'Group')
+# 
+# #line columns and rows up
+# groupnames <- as.character(qpress.prey$Group)
+# groupnames<-c('Group', groupnames)
+# setcolorder(qpress.prey, groupnames)
+# 
+# #Predator M2/F matrix
+# x <- copy(WSS28)
+# ngroup <- x$NUM_LIVING + x$NUM_DEADs
+# out <- data.frame(Group    = x$Group[1:ngroup],
+#                   type     = x$type [1:ngroup],
+#                   PB       = x$PB   [1:ngroup])
+# #Calculate F mortality
+# totcatch <- x$Catch + x$Discards
+# Fmort    <- as.data.frame(totcatch / x$BB[row(as.matrix(totcatch))])
+# setnames(Fmort, paste('V',  1:x$NUM_GEARS,                     sep = ''), 
+#          paste('F.', x$Group[(ngroup +1):x$NUM_GROUPS], sep = ''))
+# out  <- cbind(out, Fmort[1:ngroup, ])
+# setnames(out, 'Fmort[1:ngroup, ]', 'Fishery')
 
 #Add Fishery to prey
 fishery <- as.data.table(out)
 fishery <- fishery[, list(Group, Fishery)]
-qpress.prey <- merge(qpress.prey, fishery, by = 'Group') 
-qpress.prey[, Group := NULL]
+qpress.prey <- merge(qpress.prey, fishery, by="Group")
+qpress.prey<-qpress.prey[, -1]#remove Group column
 fishery.0 <- as.data.table(matrix(rep(0, nrow(fishery) + 1), 1, nrow(fishery) + 1))
-qpress.prey <- rbindlist(list(qpress.prey, fishery.0))
+# setnames(fishery.0, paste('V', 1:x$NUM_Groups, sep=''), groupnames)
+qpress.prey <- rbindlist(list(qpress.prey, fishery.0), use.names=FALSE)
+
+# fishery <- as.data.table(out)
+# fishery <- fishery[, list(Group, Fishery)]
+# qpress.prey <- merge(qpress.prey, fishery, by = 'Group') 
+# qpress.prey[, Group := NULL]
+# fishery.0 <- as.data.table(matrix(rep(0, nrow(fishery) + 1), 1, nrow(fishery) + 1))
+# qpress.prey <- rbindlist(list(qpress.prey, fishery.0))
 
 # #Predator M2/F matrix
 # x <- copy(WSS28.b)
@@ -255,7 +295,7 @@ out <- cbind(out, M0)
 
 
 #Calculate M2
-bio  <- x$BB[1:x$NUM_LIVING]
+bio  <- x$Biomass[1:x$NUM_LIVING]
 BQB  <- bio * x$QB[1:x$NUM_LIVING]
 diet <- as.data.frame(x$DC)
 nodetrdiet <- diet[1:x$NUM_LIVING, ]
@@ -264,8 +304,8 @@ newcons    <- nodetrdiet * BQB[col(as.matrix(nodetrdiet))]
 predM      <- newcons / bio[row(as.matrix(newcons))]
 detcons    <- detrdiet * BQB[col(as.matrix(detrdiet))]
 predM      <- rbind(predM, detcons)
-setnames(predM, paste('V',  1:x$NUM_LIVING,    sep = ''), 
-         paste('M2.', x$Group[1:x$NUM_LIVING], sep = ''))
+# setnames(predM, paste('V',  1:x$NUM_LIVING,    sep = ''), 
+#          paste('M2.', x$Group[1:x$NUM_LIVING], sep = ''))
 qpress.pred <- as.data.table(cbind(out, predM))
 
 M2.cols <- names(qpress.pred)[which(!names(qpress.pred) %in% c('Group', 'type', 
@@ -389,11 +429,11 @@ q.models<-vector('list', length(mod))
 for(i in seq_along(mod)){
   q.models[[i]]<-make.qnm(mod[[i]])
 }
-#write dia files
-for(i in seq_along(q.models)){
-  #can add text below to further specify name
-  write.dia(q.models[[i]], paste0("WSS", i,".dia"))
-}
+# #write dia files
+# for(i in seq_along(q.models)){
+#   #can add text below to further specify name
+#   write.dia(q.models[[i]], paste0("WSS", i,".dia"))
+# }
 
 #loop through models to create results csv file and pdf barplots
 for(j in seq_along(q.models)){
@@ -409,10 +449,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Small crab other artopoda"=-1), monitor=F)
+                          perturb=c("Phytoplankton"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Small crab other artopoda"=-1))
+  impact <- press.impact(q.models[[j]],perturb=c("Phytoplankton"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -435,15 +475,15 @@ for(j in seq_along(q.models)){
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-    save(results, paste0("WSS28","results", j,"Small crab other artopoda_down",".RData"))
-    write.csv(results, paste0("WSS28","results", j,"Small crab other artopoda_down",".csv"))
+    # save(results, paste0("WSS28","results", j,"Phytoplankton_up",".RData"))
+    write.csv(results, paste0("WSS28","results", j,"Phytoplankton_up",".csv"))
     
     library(RColorBrewer)
     pal <- brewer.pal(n=5,"Greys")[5:1]
     #opar <- par(mar=c(5,10,1,1)+0.1)
     prop <- results/rowSums(results)
     r <- colSums(t(prop)*(-1:1))
-    filename= paste("WSS28", "plots", j,"Small crab other artopoda_down", ".pdf")
+    filename= paste("WSS28", "plots", j,"Phytoplankton_up", ".pdf")
     pdf(filename)
     #adjust barplot if you want it ordered by proportion
     par(mar=c(5,10,1,1)+0.1)
@@ -634,9 +674,41 @@ usethis::use_data(WSS62, overwrite = TRUE)
 ```{r}
 #QPress-------------------------------------------------------------------------
 setwd("~/JCT work/WGNARS/RpathQNM/RpathQNM/WSS62model")
+Group <- c( 'Whales', 'Toothed cetaceans', 'Seals', 'Sea birds', 'Sharks', 
+            'Large pelagic', 'Cod less1', 'Cod 1to3', 'Cod 4to6', 'Cod 7plus', 
+            'S Hake less25', 'S Hake 25to31', 'S Hake 31plus', 'Halibut less46', 'Halibut 46to81',
+            'Halibut 82plus', 'Pollock less49', 'Pollock 49plus', 'D piscvores less40', 'D piscvores 40plus',
+            'L benthivores less41', 'L bentivores 41plus', 'Skates less49', 'Skates 49plus',
+            'Dogfish', 'Redfish less22', 'Redfish 22plus', 'A plaice less26', 'A plaice 26plus',
+            'Flounders less30', 'Flounders 30plus', 'Haddock less3', 'Haddock 3plus', 'L sculpin less25',
+            'L sculpin 25plus', 'Herring less4', 'Herring 4plus', 'Other pelagic', 'Mackerel',
+            'Mesopelagic', 'Smallmedium benthivores', 'Squids', 'Lobster', 'Large crabs',
+            'Small crabs', 'Shrimps', 'Scallop', 'Bivalves', 'Other molluscs', 
+            'Other arthropoda', 'Echinoderms', 'Sessile benthic groups', 'Worms', 
+            'Meiofauna','Gelatinous zoop', 'Macrozoop', 'Mesozoop', 'Microzoop',
+            'Microflora', 'Phytoplankton', 'Discards', 'Detritus', 'Import')
+
+groupnamescol<-c('Group', 'Whales', 'Toothed cetaceans', 'Seals', 'Sea birds', 'Sharks', 
+            'Large pelagic', 'Cod less1', 'Cod 1to3', 'Cod 4to6', 'Cod 7plus', 
+            'S Hake less25', 'S Hake 25to31', 'S Hake 31plus', 'Halibut less46', 'Halibut 46to81',
+            'Halibut 82plus', 'Pollock less49', 'Pollock 49plus', 'D piscvores less40', 'D piscvores 40plus',
+            'L benthivores less41', 'L bentivores 41plus', 'Skates less49', 'Skates 49plus',
+            'Dogfish', 'Redfish less22', 'Redfish 22plus', 'A plaice less26', 'A plaice 26plus',
+            'Flounders less30', 'Flounders 30plus', 'Haddock less3', 'Haddock 3plus', 'L sculpin less25',
+            'L sculpin 25plus', 'Herring less4', 'Herring 4plus', 'Other pelagic', 'Mackerel',
+            'Mesopelagic', 'Smallmedium benthivores', 'Squids', 'Lobster', 'Large crabs',
+            'Small crabs', 'Shrimps', 'Scallop', 'Bivalves', 'Other molluscs', 
+            'Other arthropoda', 'Echinoderms', 'Sessile benthic groups', 'Worms', 
+            'Meiofauna','Gelatinous zoop', 'Macrozoop', 'Mesozoop', 'Microzoop',
+            'Microflora', 'Phytoplankton')
 
 #Prey matrix
 qpress.prey <- WSS62.params$diet
+#change names to be compatible with Qpress
+setnames(qpress.prey, groupnamescol)
+qpress.prey<-qpress.prey[,-1]
+qpress.prey<-cbind(qpress.prey, Group)
+
 pred.cols <- names(qpress.prey)[which(names(qpress.prey) != 'Group')]
 
 qpress.prey <- qpress.prey[Group != 'Import']
@@ -659,20 +731,23 @@ out <- data.frame(Group    = x$Group[1:ngroup],
 #Calculate F mortality
 # totcatch <- x$Catch + x$Discards
 totcatch <- x$Landings + x$Discards
-#Fmort    <- as.data.frame(totcatch / x$BB[row(as.matrix(totcatch))])
 Fmort    <- as.data.frame(totcatch / x$Biomass[row(as.matrix(totcatch))])
-setnames(Fmort, paste('V',  1:x$NUM_GEARS, sep = ''), 
-         paste('F.', x$Group[(ngroup +1):x$NUM_GROUPS], sep = ''))
+# setnames(Fmort, 'Fleet1', 'Fishery')
+# Fmort    <- as.data.frame(totcatch / x$Biomass[row(as.matrix(totcatch))])
+# setnames(Fmort, paste('V',  1:x$NUM_GEARS, sep = ''),
+#          paste('F.', x$Group[(ngroup +1):x$NUM_GROUPS], sep = ''))
 out  <- cbind(out, Fmort[1:ngroup, ])
 setnames(out, 'Fmort[1:ngroup, ]', 'Fishery')
 
 #Add Fishery to prey
 fishery <- as.data.table(out)
 fishery <- fishery[, list(Group, Fishery)]
-qpress.prey <- merge(qpress.prey, fishery, by = 'Group') 
-qpress.prey[, Group := NULL]
+qpress.prey <- merge(qpress.prey, fishery, by="Group")
+qpress.prey<-qpress.prey[, -1]#remove Group column
 fishery.0 <- as.data.table(matrix(rep(0, nrow(fishery) + 1), 1, nrow(fishery) + 1))
-qpress.prey <- rbindlist(list(qpress.prey, fishery.0))
+# setnames(fishery.0, paste('V', 1:x$NUM_Groups, sep=''), groupnames)
+qpress.prey <- rbindlist(list(qpress.prey, fishery.0), use.names=FALSE)
+
 
 # #Predator M2/F matrix
 # x <- copy(WSS62.b)
@@ -698,8 +773,8 @@ newcons    <- nodetrdiet * BQB[col(as.matrix(nodetrdiet))]
 predM      <- newcons / bio[row(as.matrix(newcons))]
 detcons    <- detrdiet * BQB[col(as.matrix(detrdiet))]
 predM      <- rbind(predM, detcons)
-setnames(predM, paste('V',  1:x$NUM_LIVING,    sep = ''), 
-         paste('M2.', x$Group[1:x$NUM_LIVING], sep = ''))
+# setnames(predM, paste('V',  1:x$NUM_LIVING,    sep = ''), 
+#          paste('M2.', x$Group[1:x$NUM_LIVING], sep = ''))
 qpress.pred <- as.data.table(cbind(out, predM))
 
 M2.cols <- names(qpress.pred)[which(!names(qpress.pred) %in% c('Group', 'type', 
@@ -738,6 +813,7 @@ qpress.WSS62 <- qpress.pred + qpress.prey
 
 FG<-as.vector(new.names)
 qpress.WSS62<-cbind(FG, qpress.WSS62)
+
 
 save(qpress.WSS62, file="qpress.WSS62.RData")
 
@@ -816,19 +892,19 @@ make.qnm<-function(modmat){
 set.seed(1984)
 #load RData files if required
 #create list
-mod<-list(WSS62qnm10, WSS62qnm20, WSS62qnm30, WSS62qnm40, WSS62qnm50, WSS62qnm100)
-
+# mod<-list(WSS62qnm10, WSS62qnm20, WSS62qnm30, WSS62qnm40, WSS62qnm50, WSS62qnm100)
+mod<-list(WSS62qnm50)
 
 #get MM matrix into qpress format, create model
 q.models<-vector('list', length(mod))  
 for(i in seq_along(mod)){
   q.models[[i]]<-make.qnm(mod[[i]])
 }
-#write dia files
-for(i in seq_along(q.models)){
-  #can add text below to further specify name
-  write.dia(q.models[[i]], paste0("WSS", i,".dia"))
-}
+# #write dia files
+# for(i in seq_along(q.models)){
+#   #can add text below to further specify name
+#   write.dia(q.models[[i]], paste0("WSS", i,".dia"))
+# }
 
 #loop through models to create results csv file and pdf barplots
 for(j in seq_along(q.models)){
@@ -844,10 +920,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Small crab other artopoda"=-1), monitor=F)
+                          perturb=c("Phytoplankton"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Small crab other artopoda"=-1))
+  impact <- press.impact(q.models[[j]],perturb=c("Phytoplankton"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -870,15 +946,15 @@ for(j in seq_along(q.models)){
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-    save(results, paste0("WSS62","results", j,"Small crab other artopoda_down",".RData"))
-    write.csv(results, paste0("WSS62","results", j,"Small crab other artopoda_down",".csv"))
+    # save(results, paste0("WSS62","results", j,"Phytoplankton_up",".RData"))
+    write.csv(results, paste0("WSS62","results", j,"Phytoplankton_up",".csv"))
     
     library(RColorBrewer)
     pal <- brewer.pal(n=5,"Greys")[5:1]
     #opar <- par(mar=c(5,10,1,1)+0.1)
     prop <- results/rowSums(results)
     r <- colSums(t(prop)*(-1:1))
-    filename= paste("WSS62", "plots", j,"Small crab other artopoda_down", ".pdf")
+    filename= paste("WSS62", "plots", j,"Phytoplankton_up", ".pdf")
     pdf(filename)
     #adjust barplot if you want it ordered by proportion
     par(mar=c(5,10,1,1)+0.1)
