@@ -29,7 +29,7 @@ require(tidyverse)
 #-------------------------------------------------------------------------------
 #Required packages
 library(data.table); library(Rpath)
-setwd("~/JCT work/WGNARS/RpathQNM/RpathQNM/WSS28model")
+setwd("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/WSS28model")
 #-------------------------------------------------------------------------------
 #User created functions
 
@@ -378,7 +378,7 @@ save(WSS28qnm100, file='WSS28qnm100.RData')
 ```
 
 
-## Qpress for WSS28
+## Adjacency to digraph
 ```{r}
 MM2Qpress <- function(data){
   library(data.table)
@@ -413,6 +413,12 @@ make.qnm<-function(modmat){
   qnm.mod<-parse.digraph(qnm)
   qnm.model<-enforce.limitation(qnm.mod)
 }
+
+```
+
+
+## Qpress for WSS28
+```{r}
 
 #--------------------------------------------------------------------
 #####PERTURBATIONS#####
@@ -449,10 +455,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Phytoplankton"=1), monitor=F)
+                          perturb=c("Fishery"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Phytoplankton"=1))
+  impact <- press.impact(q.models[[j]],perturb=c("Fishery"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -475,23 +481,25 @@ for(j in seq_along(q.models)){
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-    # save(results, paste0("WSS28","results", j,"Phytoplankton_up",".RData"))
-    write.csv(results, paste0("WSS28","results", j,"Phytoplankton_up",".csv"))
+     save(results, file=paste0("WSS28","results", j,"Fishery_up",".RData"))
+    write.csv(results, paste0("WSS28","results", j,"Fishery_up",".csv"))
     
-    library(RColorBrewer)
-    pal <- brewer.pal(n=5,"Greys")[5:1]
-    #opar <- par(mar=c(5,10,1,1)+0.1)
-    prop <- results/rowSums(results)
-    r <- colSums(t(prop)*(-1:1))
-    filename= paste("WSS28", "plots", j,"Phytoplankton_up", ".pdf")
-    pdf(filename)
-    #adjust barplot if you want it ordered by proportion
-    par(mar=c(5,10,1,1)+0.1)
-    barplot(t(prop),
-            horiz=T,cex.names=0.7,cex.axis=0.8,las=2,border=T, col=pal,xlab="Proportion")
+
     
+    # library(RColorBrewer)
+    # pal <- brewer.pal(n=5,"Greys")[5:1]
+    # #opar <- par(mar=c(5,10,1,1)+0.1)
+    # prop <- results/rowSums(results)
+    # r <- colSums(t(prop)*(-1:1))
+    # filename= paste("WSS28", "plots", j,"Seals_up", ".pdf")
+    # pdf(filename)
+    # #adjust barplot if you want it ordered by proportion
+    # par(mar=c(5,10,1,1)+0.1)
+    # barplot(t(prop),
+    #         horiz=T,cex.names=0.7,cex.axis=0.8,las=2,border=T, col=pal,xlab="Proportion")
     
-    dev.off()
+    if(dev.cur() > 1) dev.off()
+    # dev.off()
   }
 }
 #code for ordered barplot
@@ -504,6 +512,145 @@ for(j in seq_along(q.models)){
 # barplot(t(prop[order(r),]),
 #         horiz=T,cex.names=0.6,cex.axis=0.8,las=2,border=T,col=pal,xlab="Proportion")
 # par(opar)
+
+```
+
+##visualize results
+```{r}
+WSS28_10_phyto_up<-get(load("WSS28results1Phytoplankton_up.RData"))
+WSS28_10_phyto_down<-get(load("WSS28results1Phytoplankton_dtesting.RData"))
+WSS28_20_phyto_up<-get(load("WSS28results2Phytoplankton_up.RData"))
+WSS28_20_phyto_down<-get(load("WSS28results2Phytoplankton_dtesting.RData"))
+WSS28_30_phyto_up<-get(load("WSS28results3Phytoplankton_up.RData"))
+WSS28_30_phyto_down<-get(load("WSS28results3Phytoplankton_dtesting.RData"))
+WSS28_40_phyto_up<-get(load("WSS28results4Phytoplankton_up.RData"))
+WSS28_40_phyto_down<-get(load("WSS28results4Phytoplankton_dtesting.RData"))
+WSS28_50_phyto_up<-get(load("WSS28results5Phytoplankton_up.RData"))
+WSS28_50_phyto_down<-get(load("WSS28results5Phytoplankton_dtesting.RData"))
+WSS28_100_phyto_up<-get(load("WSS28results6Phytoplankton_up.RData"))
+WSS28_100_phyto_down<-get(load("WSS28results6Phytoplankton_dtesting.RData"))
+
+WSS28_10_spelagics_up<-get(load("WSS28results1Small pelagics_up.RData"))
+WSS28_10_spelagics_down<-get(load("WSS28results1Small pelagics_down.RData"))
+WSS28_20_spelagics_up<-get(load("WSS28results2Small pelagics_up.RData"))
+WSS28_20_spelagics_down<-get(load("WSS28results2Small pelagics_down.RData"))
+WSS28_30_spelagics_up<-get(load("WSS28results3Small pelagics_up.RData"))
+WSS28_30_spelagics_down<-get(load("WSS28results3Small pelagics_down.RData"))
+WSS28_40_spelagics_up<-get(load("WSS28results4Small pelagics_up.RData"))
+WSS28_40_spelagics_down<-get(load("WSS28results4Small pelagics_down.RData"))
+WSS28_50_spelagics_up<-get(load("WSS28results5Small pelagics_up.RData"))
+WSS28_50_spelagics_down<-get(load("WSS28results5Small pelagics_down.RData"))
+WSS28_100_spelagics_up<-get(load("WSS28results6Small pelagics_up.RData"))
+WSS28_100_spelagics_down<-get(load("WSS28results6Small pelagics_down.RData"))
+
+WSS28_10_Seals_up<-get(load("WSS28results1Seals_up.RData"))
+WSS28_10_Seals_down<-get(load("WSS28results1Seals_down.RData"))
+WSS28_20_Seals_up<-get(load("WSS28results2Seals_up.RData"))
+WSS28_20_Seals_down<-get(load("WSS28results2Seals_down.RData"))
+WSS28_30_Seals_up<-get(load("WSS28results3Seals_up.RData"))
+WSS28_30_Seals_down<-get(load("WSS28results3Seals_down.RData"))
+WSS28_40_Seals_up<-get(load("WSS28results4Seals_up.RData"))
+WSS28_40_Seals_down<-get(load("WSS28results4Seals_down.RData"))
+WSS28_50_Seals_up<-get(load("WSS28results5Seals_up.RData"))
+WSS28_50_Seals_down<-get(load("WSS28results5Seals_down.RData"))
+WSS28_100_Seals_up<-get(load("WSS28results6Seals_up.RData"))
+WSS28_100_Seals_down<-get(load("WSS28results6Seals_down.RData"))
+
+WSS28_10_Fishery_up<-get(load("WSS28results1Fishery_up.RData"))
+WSS28_10_Fishery_down<-get(load("WSS28results1Fishery_down.RData"))
+WSS28_20_Fishery_up<-get(load("WSS28results2Fishery_up.RData"))
+WSS28_20_Fishery_down<-get(load("WSS28results2Fishery_down.RData"))
+WSS28_30_Fishery_up<-get(load("WSS28results3Fishery_up.RData"))
+WSS28_30_Fishery_down<-get(load("WSS28results3Fishery_down.RData"))
+WSS28_40_Fishery_up<-get(load("WSS28results4Fishery_up.RData"))
+WSS28_40_Fishery_down<-get(load("WSS28results4Fishery_down.RData"))
+WSS28_50_Fishery_up<-get(load("WSS28results5Fishery_up.RData"))
+WSS28_50_Fishery_down<-get(load("WSS28results5Fishery_down.RData"))
+WSS28_100_Fishery_up<-get(load("WSS28results6Fishery_up.RData"))
+WSS28_100_Fishery_down<-get(load("WSS28results6Fishery_down.RData"))
+
+WSS28.qnm.list<-list()
+    
+files <- list.files(full.names = T, recursive = T, pattern = "biomass_annual.csv")
+subfiles<-files[c(T,F)]
+
+nfiles<-length(subfiles)
+#create empty dataframe with rows 1:49 (change if using a different model with differnt number of FGs)
+
+biomass_mc<-data.frame()[1:49,]
+for(i in 1:nfiles){
+biomass<-read.csv(paste(subfiles[[i]]),skip=9,header=TRUE)
+#pulls data from year 1, change by adjusting row number
+bio_y<-biomass[2,-1]
+rownames(bio_y)<-(paste0("X",i))
+biomass_t<-t(bio_y)
+biomass_mc<-cbind(biomass_mc, biomass_t)
+}
+
+    
+```
+
+
+## single Qpress for WSS28
+```{r}
+
+data<-WSS28qnm100
+WSS28qnm100<-MM2Qpress(data)
+WSS28qnm100<-dput(WSS28qnm100)
+WSS28qnm100<-parse.digraph(WSS28qnm100)
+
+# write.dia(WSS28qnm10Model, file="WSS28test.dia", width=8, height=2, self=T)
+
+WSS28qnm100el<-enforce.limitation(WSS28qnm100)
+
+## Examine unweighted adjacency matrix
+A <- adjacency.matrix(WSS28qnm100el)
+#A
+
+## Function to generate the community matrix
+s <- community.sampler(WSS28qnm100el)
+
+## Function to check the validation condition
+#press <- press.validate(GB2el,
+#                        perturb=c("Forage_Fish"=-1),
+#                        monitor=c("Commercial_Pelagic_Fishery"=1))
+#Press/Perturbation with decrease forage fish and no monitoring)
+press <- press.validate(WSS28qnm100el,
+                        perturb=c("Fishery"=-1), monitor=F)
+
+## Function to define the perturbation scenario
+impact <- press.impact(WSS28qnm100el,perturb=c("Fishery"=-1))
+## Use 10000 simulations
+n.sims <- 1000
+results <- 0
+i <- 0
+while(i < n.sims) {
+  
+  ## Randomly choose edges to retain
+  z <- s$select(runif(1))
+  ## Sample community matrix
+  W <- s$community()
+  
+  ## Check press condition and stability
+  if(!(press(W) && stable.community(W))) next
+  
+  ## Monitor impact post press
+  imp <- impact(W)
+  imp[abs(imp)<1e-07]=0 #added to remove small perturbations
+  results <- results + outer(sign(imp),-1:1,'==')
+  i <- i+1
+}
+
+## Print results
+rownames(results) <- levels(WSS28qnm100el$From)
+colnames(results) <- c('-','0','+')
+#results
+
+##save results
+WSS28qnm100_Fishery_down<-results
+write.csv(WSS28qnm100_Fishery_down, file="WSS28100_Fishery_down.csv")
+save(WSS28qnm100_Fishery_down, file="WSS28100_Fishery_down.RData")
+
 
 ```
 
@@ -890,7 +1037,7 @@ make.qnm<-function(modmat){
 #to loop over multiple models
 #create folder with files in directory, call list of files
 set.seed(1984)
-#load RData files if required
+#get(load RData files if required
 #create list
 # mod<-list(WSS62qnm10, WSS62qnm20, WSS62qnm30, WSS62qnm40, WSS62qnm50, WSS62qnm100)
 mod<-list(WSS62qnm50)
