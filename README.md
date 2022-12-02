@@ -2,6 +2,8 @@
 
 ### Comparison between quantitative (Rpath) and qualitative (QNM) models
 
+[link to draft in progress](https://docs.google.com/document/d/1Oef1g5m1yK73n5o-CT1VF0LmAi5tRYZJy1nB_msf8Dw/edit)
+
 ---
 
 ## Developers (in alphabetical order)
