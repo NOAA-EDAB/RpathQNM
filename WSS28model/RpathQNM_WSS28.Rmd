@@ -455,10 +455,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Fishery"=1), monitor=F)
+                          perturb=c("Seals"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Fishery"=1))
+  impact <- press.impact(q.models[[j]],perturb=c("Seals"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -481,8 +481,8 @@ for(j in seq_along(q.models)){
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-     save(results, file=paste0("WSS28","results", j,"Fishery_up",".RData"))
-    write.csv(results, paste0("WSS28","results", j,"Fishery_up",".csv"))
+     save(results, file=paste0("WSS28","results", j,"Seals_up",".RData"))
+    write.csv(results, paste0("WSS28","results", j,"Seals_up",".csv"))
     
 
     
@@ -1131,7 +1131,8 @@ for(j in seq_along(q.models)){
 
 WSS28.results_ecos<-WSS28.results %>% 
     mutate(
-        Direction=case_match(Direction,"Plus" ~ "plus", "Minus" ~ "minus")
+        Direction=case_match(Direction,"Plus" ~ "plus", "Minus" ~ "minus"), 
+        Group=case_match(Group, "Seals" ~ "Seal", .default=Group)
         ) %>%
     select(!Outside)%>%
     add_column (Model="ecosense", model_links=0) %>%
@@ -1208,11 +1209,7 @@ dat_fishminus<- ecoQNMresults_long %>%
 
 p_fishminus<- ggplot(dat_fishminus)+
   geom_point(aes(y=node, x=model_ID,cex=value, 
-                 pch=sign, color=sign)) + 
-    # pch=sign, color=sign, fill=fill)) + 
-  # scale_color_manual( values=c("lightblue","orangered","grey"))+
-  # scale_shape_manual(values=c(25,24,22)) + 
-  # scale_fill_manual(values=c("lightblue","orangered","white")) + 
+                 pch=sign, color=sign)) +
 
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
@@ -1225,80 +1222,107 @@ p_fishminus<- ggplot(dat_fishminus)+
         axis.text.x=element_text (angle=-90, hjust=0 ))
 
 
+dat_sealminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Seal_minus")
 
-dat_gb<-subset(dat_long, system=="GB")
-dat_gb$node<-factor(dat_gb$node, levels=c( "Seafood","HabitatSeafloorDemersal","Forage Fish", "Groundfish"))
+p_sealminus<- ggplot(dat_sealminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
 
-p2<- ggplot(dat_gb)+
-  geom_point(aes(y=node, x=model,cex=response, 
-                 pch=sign, color=sign, fill=fill)) + 
-  scale_color_manual( values=c("lightblue","orangered","grey"))+
-  scale_shape_manual(values=c(25,24,22)) + 
-  scale_fill_manual(values=c("lightblue","orangered","white")) + 
-  facet_grid(~scen) + 
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
-        axis.text.x = element_blank(),
+     
         axis.title.x=element_blank(),
         axis.title.y=element_blank(),
-        legend.position = "none" ,
-        strip.background = element_blank(),
-        strip.text.x = element_blank()) +
-    scale_y_discrete(labels=c( "Forage Fish" = "Forage fish",
-                              "HabitatSeafloorDemersal" = "HSD"))
+        axis.text.x=element_text (angle=-90, hjust=0 ))
 
+dat_sealplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Seal_plus")
 
+p_sealplus<- ggplot(dat_sealplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
 
-dat_bar<-subset(dat_long, system=="BAR")
-dat_bar$node<-factor(dat_bar$node, levels=c( "Wetlands","Recreation","Habitable Land", "Fish"))
-
-
-p3<- ggplot(dat_bar)+
-  geom_point(aes(y=node, x=model,cex=response, 
-                 pch=sign, color=sign, fill=fill)) + 
-  scale_color_manual( values=c("lightblue","orangered","grey"))+
-  scale_shape_manual(values=c(25,24,22)) + 
-  scale_fill_manual(values=c("lightblue","orangered","white")) + 
-  facet_grid(~scen) + 
   theme_bw() +
   theme(axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
         axis.title.y=element_blank(),
-        legend.position = "none",
-        strip.background = element_blank(),
-        strip.text.x = element_blank()) + 
-  scale_x_discrete(labels=c("catqnm" = "QNM", "catbbn" = "BBN",
-                            "catfcm" = "FCM")) + 
-  scale_y_discrete(labels=c( "Habitable Land" = "HL"))
+        axis.text.x=element_text (angle=-90, hjust=0 ))
 
+dat_smallpelagicsminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Small pelagics_minus")
 
-grid.arrange(p1, p2, p3, ncol=1)
+p_smallpelagicsminus<- ggplot(dat_smallpelagicsminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
 
-library(gtable)
-library(grid)
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
 
-g1 <- ggplotGrob(p1)
-g2 <- ggplotGrob(p2)
-g3 <- ggplotGrob(p3)
-g <- rbind(g1,g2, g3, size = "first")
+dat_smallpelagicsplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Small pelagics_plus")
 
-g$widths <- unit.pmax(g1$widths, g2$widths, g3$widths)
-grid.newpage()
-grid.draw(g)
+p_smallpelagicsplus<- ggplot(dat_smallpelagicsplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
 
-#ggsave(filename="core_nodes_REV.pdf", width = 15, height = 15, units = "cm", dpi=300)
-#ggsave not working for some reason 
-grid.newpage()
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
 
-pdf("core_nodes_REV.pdf", width = 4, height = 5)
-grid.draw(g)
-dev.off()
+dat_phytoplanktonminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Phytoplankton_minus")
 
+p_phytoplanktonminus<- ggplot(dat_phytoplanktonminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+dat_phytoplanktonplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Phytoplankton_plus")
+
+p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
 
 ```
 
