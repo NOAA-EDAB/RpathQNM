@@ -72,7 +72,12 @@ for(irun in 1:1000){
     
     #Calculate baseline biomass values
     bio <- as.data.table(base$annual_Biomass)
-    bio.mean.base <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+    bio.mean.base <- bio[91:100, lapply(.SD, mean), .SDcols = names(bio)]
+    
+    #Calculate baseline fisheries values
+    catch <- as.data.table(base$annual_Catch)
+    catch.mean.base <- catch[91:100, lapply(.SD, mean), .SDcols = names(catch)]
+    catch.base <- sum(catch.mean.base)
     
     #Run perturbations - Living groups
     Groups <- c('Phytoplankton', 'Small pelagics', 'Seals')
@@ -90,13 +95,20 @@ for(irun in 1:1000){
         #Diagnostic plots
         #plot(plus$annual_Biomass[, 26])
         #rsim.plot(plus)
+        #rsim.plot(plus, "Phytoplankton", indplot = T)
         
         #Calculate perturbed biomass
         bio <- as.data.table(plus$annual_Biomass)
-        bio.mean.plus <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+        bio.mean.plus <- bio[91:100, lapply(.SD, mean), .SDcols = names(bio)]
         
-        #Save difference between base and perturbed
-        plus.output <- bio.mean.plus - bio.mean.base
+        #Calculate perturbed catch
+        catch <- as.data.table(plus$annual_Catch)
+        catch.mean.plus <- catch[91:100, lapply(.SD, mean), .SDcols = names(catch)]
+        catch.plus <- sum(catch.mean.plus)
+        
+        #Save percent difference between base and perturbed
+        plus.output <- (bio.mean.plus - bio.mean.base) /bio.mean.base
+        plus.output[, Fishery := (catch.plus - catch.base) / catch.base]
         
         #Add meta data
         plus.output[, Group := Groups[igrp]]
@@ -115,10 +127,16 @@ for(irun in 1:1000){
         
         #Calculate perturbed biomass
         bio <- as.data.table(neg$annual_Biomass)
-        bio.mean.neg <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+        bio.mean.neg <- bio[91:100, lapply(.SD, mean), .SDcols = names(bio)]
         
-        #Save difference between base and perturbed
-        neg.output <- bio.mean.neg - bio.mean.base
+        #Calculate perturbed catch
+        catch <- as.data.table(neg$annual_Catch)
+        catch.mean.neg <- catch[91:100, lapply(.SD, mean), .SDcols = names(catch)]
+        catch.neg <- sum(catch.mean.neg)
+        
+        #Save percent difference between base and perturbed
+        neg.output <- (bio.mean.neg - bio.mean.base) / bio.mean.base
+        neg.output[, Fishery := (catch.neg - catch.base) / catch.base]
         
         #Add meta data
         neg.output[, Group := Groups[igrp]]
@@ -142,10 +160,16 @@ for(irun in 1:1000){
     
     #Calculate perturbed biomass
     bio <- as.data.table(plus$annual_Biomass)
-    bio.mean.plus <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+    bio.mean.plus <- bio[91:100, lapply(.SD, mean), .SDcols = names(bio)]
     
-    #Save difference between base and perturbed
-    plus.output <- bio.mean.plus - bio.mean.base
+    #Calculate perturbed catch
+    catch <- as.data.table(plus$annual_Catch)
+    catch.mean.plus <- catch[91:100, lapply(.SD, mean), .SDcols = names(catch)]
+    catch.plus <- sum(catch.mean.plus)
+    
+    #Save percent difference between base and perturbed
+    plus.output <- (bio.mean.plus - bio.mean.base) / bio.mean.base
+    plus.output[, Fishery := (catch.plus - catch.base) / catch.base]
     
     #Add meta data
     plus.output[, Group := 'Fishery']
@@ -166,8 +190,14 @@ for(irun in 1:1000){
     bio <- as.data.table(neg$annual_Biomass)
     bio.mean.neg <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
     
-    #Save difference between base and perturbed
-    neg.output <- bio.mean.neg - bio.mean.base
+    #Calculate perturbed catch
+    catch <- as.data.table(neg$annual_Catch)
+    catch.mean.neg <- catch[91:100, lapply(.SD, mean), .SDcols = names(catch)]
+    catch.neg <- sum(catch.mean.neg)
+    
+    #Save percent difference between base and perturbed
+    neg.output <- (bio.mean.neg - bio.mean.base) / bio.mean.base
+    neg.output[, Fishery := (catch.neg - catch.base) / catch.base]
     
     #Add meta data
     neg.output[, Group := 'Fishery']
@@ -182,8 +212,34 @@ for(irun in 1:1000){
 }
 
 #Summarize output
-WSS28.results <- output[, lapply(.SD, function(x) sum(x > 0)), 
-                        by = c('Group', 'Direction')]  
+Groups <- c(Groups, 'Fishery')
+Direction <- c('Plus', 'Minus')
+WSS28.results <- c()
+for(igrp in Groups){
+    for(idir in Direction){
+        out.scene <- output[Group == igrp & Direction == idir, ]
+        #Sum by number of outcomes in a specific direction
+        #Set a cut-off for essentially no change
+        cutoff <- 0.02
+        
+        pos <- out.scene[, lapply(.SD, function(x) sum(x > cutoff)), 
+                      by = c('Group', 'Direction')]
+        neu <- out.scene[, lapply(.SD, function(x) sum(x < cutoff & x > -1 * cutoff)), 
+                         by = c('Group', 'Direction')]
+        neg <- out.scene[, lapply(.SD, function(x) sum(x < -1 * cutoff)), 
+                         by = c('Group', 'Direction')]
+        
+        #Add outcome to the results
+        pos[, Outcome := 'Positive']
+        neu[, Outcome := 'Neutral']
+        neg[, Outcome := 'Negative']
+        
+        scene.combo <- rbindlist(list(pos, neu, neg))
+        WSS28.results <- rbindlist(list(WSS28.results, scene.combo))
+    }
+}
+setcolorder(WSS28.results, c('Group', 'Direction', 'Outcome'))
+  
 usethis::use_data(WSS28.results, overwrite = TRUE)
 
 
