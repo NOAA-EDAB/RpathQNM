@@ -455,10 +455,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Fishery"=1), monitor=F)
+                          perturb=c("Seals"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Fishery"=1))
+  impact <- press.impact(q.models[[j]],perturb=c("Seals"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -481,8 +481,8 @@ for(j in seq_along(q.models)){
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-     save(results, file=paste0("WSS28","results", j,"Fishery_up",".RData"))
-    write.csv(results, paste0("WSS28","results", j,"Fishery_up",".csv"))
+     save(results, file=paste0("WSS28","results", j,"Seals_up",".RData"))
+    write.csv(results, paste0("WSS28","results", j,"Seals_up",".csv"))
     
 
     
@@ -1124,3 +1124,205 @@ for(j in seq_along(q.models)){
 # par(opar)
 
 ```
+
+
+## gather results
+```{r}
+
+WSS28.results_ecos<-WSS28.results %>% 
+    mutate(
+        Direction=case_match(Direction,"Plus" ~ "plus", "Minus" ~ "minus"), 
+        Group=case_match(Group, "Seals" ~ "Seal", .default=Group)
+        ) %>%
+    select(!Outside)%>%
+    add_column (Model="ecosense", model_links=0) %>%
+    unite("model_ID", Group:Direction, remove=FALSE)
+                    
+
+WSS28_results_ecosQNM<-bind_rows(WSS28_QNM_results_compiled_tr, WSS28.results_ecos)
+
+saveRDS(WSS28_results_ecosQNM, "~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/WSS28_results_ecosQNM.RDS")
+
+```
+## Graphing ecosense and qnm
+```{r}
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+
+WSS28_results_ecosQNM <- readRDS("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/WSS28_results_ecosQNM.RDS")
+
+
+ecoQNMresults<-WSS28_results_ecosQNM %>%
+                unite("scenario", Group:Direction, remove=FALSE )
+
+ecoQNMresults_long<-ecoQNMresults %>%
+                    pivot_longer (cols= 7:34, names_to="node" ) %>%
+                   mutate(sign=value) %>%
+                    mutate(fill=value) 
+                    
+ecoQNMresults_long$sign[ecoQNMresults_long$sign >600] <- "positive"
+ecoQNMresults_long$sign[ecoQNMresults_long$sign >400 & ecoQNMresults_long$fill <=600] <- "zero" 
+ecoQNMresults_long$sign[ecoQNMresults_long$sign <=400] <- "negative"
+
+ecoQNMresults_long$fill[ecoQNMresults_long$fill >800] <- "strong_positive"
+ecoQNMresults_long$fill[ecoQNMresults_long$fill >600 & ecoQNMresults_long$fill <=800] <- "moderate_positive"
+ecoQNMresults_long$fill[ecoQNMresults_long$fill >400 & ecoQNMresults_long$fill <=600] <- "weak"
+ecoQNMresults_long$fill[ecoQNMresults_long$fill >200 & ecoQNMresults_long$fill <=400] <- "moderate_negative"
+ecoQNMresults_long$fill[ecoQNMresults_long$fill <=200] <- "strong_negative"
+
+
+  
+  ########################
+# Plot up responses as bubble plots 
+dat_fishplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Fishery_plus")
+    
+
+p_fishplus<- ggplot(dat_fishplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  # scale_color_manual( values=c("lightblue","orangered","grey"))+
+  # scale_shape_manual(values=c(25,24,22)) + 
+  # scale_fill_manual(values=c("lightblue","orangered","white")) + 
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+        # legend.position = "none"
+  #       strip.background = element_blank()) +
+  # scale_y_discrete(labels=c( "BKCA" = "BKC-A", 
+  #                            "RKCA" = "RKC-A",
+  #                            "PC" = "Pacific cod",
+  #                            "HalA" = "Halibut-A"))
+
+
+dat_fishminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Fishery_minus")
+
+p_fishminus<- ggplot(dat_fishminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+
+dat_sealminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Seal_minus")
+
+p_sealminus<- ggplot(dat_sealminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+dat_sealplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Seal_plus")
+
+p_sealplus<- ggplot(dat_sealplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+dat_smallpelagicsminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Small pelagics_minus")
+
+p_smallpelagicsminus<- ggplot(dat_smallpelagicsminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+dat_smallpelagicsplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Small pelagics_plus")
+
+p_smallpelagicsplus<- ggplot(dat_smallpelagicsplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+dat_phytoplanktonminus<- ecoQNMresults_long %>% 
+                filter(scenario=="Phytoplankton_minus")
+
+p_phytoplanktonminus<- ggplot(dat_phytoplanktonminus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+dat_phytoplanktonplus<- ecoQNMresults_long %>% 
+                filter(scenario=="Phytoplankton_plus")
+
+p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
+  geom_point(aes(y=node, x=model_ID,cex=value, 
+                 pch=sign, color=sign)) +
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0 ))
+
+```
+
