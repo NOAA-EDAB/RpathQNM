@@ -14,7 +14,7 @@ require(QPress)
 require(tidyverse)
 # install_github("NOAA-EDAB/Rpath")
 # install_github("SWotherspoon/QPress")
-#p
+
 ```
 
 
@@ -378,7 +378,7 @@ save(WSS28qnm100, file='WSS28qnm100.RData')
 ```
 
 
-## Adjacency to digraph
+## Adjacency to digraph functions
 ```{r}
 MM2Qpress <- function(data){
   library(data.table)
@@ -406,13 +406,23 @@ MM2Qpress <- function(data){
   }
   return(model)
 }
-#function to create qnm models for qpress from signed digraphs
+
+#function to create qnm models for qpress from signed digraphs with self-limitation
 make.qnm<-function(modmat){
   q<-MM2Qpress(modmat)
   qnm<-dput(q)
   qnm.mod<-parse.digraph(qnm)
   qnm.model<-enforce.limitation(qnm.mod)
 }
+
+#function to create qnm models for qpress from signed digraphs WITHOUT self-limitation
+make.qnm.nolim<-function(modmat){
+  q<-MM2Qpress(modmat)
+  qnm<-dput(q)
+  qnm.mod<-parse.digraph(qnm)
+  qnm.model<-qnm.mod
+}
+
 
 ```
 
@@ -435,7 +445,7 @@ q.models<-vector('list', length(mod))
 for(i in seq_along(mod)){
   q.models[[i]]<-make.qnm(mod[[i]])
 }
-# #write dia files
+#write dia files
 # for(i in seq_along(q.models)){
 #   #can add text below to further specify name
 #   write.dia(q.models[[i]], paste0("WSS", i,".dia"))
@@ -455,10 +465,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Seals"=1), monitor=F)
+                          perturb=c("Seals"=-1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Seals"=1))
+  impact <- press.impact(q.models[[j]],perturb=c("Seals"=-1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -475,14 +485,14 @@ for(j in seq_along(q.models)){
     
     ## Monitor impact post press
     imp <- impact(W)
-    imp[abs(imp)<1e-07]=0 #added to remove small perturbations
+    # imp[abs(imp)<1e-07]=0 #added to remove small perturbations
     results <- results + outer(sign(imp),-1:1,'==')
     i <- i+1
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-     save(results, file=paste0("WSS28","results", j,"Seals_up",".RData"))
-    write.csv(results, paste0("WSS28","results", j,"Seals_up",".csv"))
+     save(results, file=paste0("WSS28","results_neu", j,"Seals_down",".RData"))
+    write.csv(results, paste0("WSS28","results_neu", j,"Seals_down",".csv"))
     
 
     
@@ -515,6 +525,104 @@ for(j in seq_along(q.models)){
 
 ```
 
+
+## Qpress for WSS28 no self limiting
+```{r}
+
+#--------------------------------------------------------------------
+#####PERTURBATIONS#####
+#to loop over multiple models
+#create folder with files in directory, call list of files
+set.seed(1984)
+#load RData files if required
+#create list
+mod<-list(WSS28qnm10, WSS28qnm20, WSS28qnm30, WSS28qnm40, WSS28qnm50, WSS28qnm100)
+
+
+#get MM matrix into qpress format, create model
+q.models<-vector('list', length(mod))  
+for(i in seq_along(mod)){
+  q.models[[i]]<-make.qnm.nolim(mod[[i]])
+}
+#write dia files
+# for(i in seq_along(q.models)){
+#   #can add text below to further specify name
+#   write.dia(q.models[[i]], paste0("WSS", i,".dia"))
+# }
+
+#loop through models to create results csv file and pdf barplots
+for(j in seq_along(q.models)){
+  A <- adjacency.matrix(q.models[[j]])
+  #A
+  
+  ## Function to generate the community matrix
+  s <- community.sampler(q.models[[j]])
+  
+  ## Function to check the validation condition
+  #press <- press.validate(GB2el,
+  #                        perturb=c("Forage_Fish"=-1),
+  #                        monitor=c("Commercial_Pelagic_Fishery"=1))
+  #Press/Perturbation with decrease forage fish and no monitoring)
+  press <- press.validate(q.models[[j]],
+                          perturb=c("Phytoplankton"=1), monitor=F)
+  
+  ## Function to define the perturbation scenario
+  impact <- press.impact(q.models[[j]],perturb=c("Phytoplankton"=1))
+  ## Use 1000 simulations
+  n.sims <- 1000
+  results <- 0
+  i <- 0
+  while(i < n.sims) {
+    
+    ## Randomly choose edges to retain
+    z <- s$select(runif(1))
+    ## Sample community matrix
+    W <- s$community()
+    
+    ## Check press condition and stability
+    if(!(press(W) && stable.community(W))) next
+    
+    ## Monitor impact post press
+    imp <- impact(W)
+    imp[abs(imp)<1e-07]=0 #added to remove small perturbations
+    results <- results + outer(sign(imp),-1:1,'==')
+    i <- i+1
+    
+    rownames(results) <- levels(q.models[[j]]$From)
+    colnames(results) <- c('-','0','+')
+     save(results, file=paste0("WSS28nolim","results", j,"Seals_up",".RData"))
+    write.csv(results, paste0("WSS28nolim","results", j,"Seals_up",".csv"))
+    
+
+    
+    # library(RColorBrewer)
+    # pal <- brewer.pal(n=5,"Greys")[5:1]
+    # #opar <- par(mar=c(5,10,1,1)+0.1)
+    # prop <- results/rowSums(results)
+    # r <- colSums(t(prop)*(-1:1))
+    # filename= paste("WSS28", "plots", j,"Seals_up", ".pdf")
+    # pdf(filename)
+    # #adjust barplot if you want it ordered by proportion
+    # par(mar=c(5,10,1,1)+0.1)
+    # barplot(t(prop),
+    #         horiz=T,cex.names=0.7,cex.axis=0.8,las=2,border=T, col=pal,xlab="Proportion")
+    
+    if(dev.cur() > 1) dev.off()
+    # dev.off()
+  }
+}
+#code for ordered barplot
+# pal <- brewer.pal(n=5,"Greys")[5:1]
+# opar <- par(mar=c(5,10,1,1)+0.1)
+# prop <- results/rowSums(results)
+# r <- colSums(t(prop)*(-1:1))
+# filename= paste("wss", "plot", j,"phytoplankton up", ".pdf")
+# pdf(filename)
+# barplot(t(prop[order(r),]),
+#         horiz=T,cex.names=0.6,cex.axis=0.8,las=2,border=T,col=pal,xlab="Proportion")
+# par(opar)
+
+```
 ##visualize results
 ```{r}
 WSS28_10_phyto_up<-get(load("WSS28results1Phytoplankton_up.RData"))
@@ -594,32 +702,35 @@ biomass_mc<-cbind(biomass_mc, biomass_t)
 ## single Qpress for WSS28
 ```{r}
 
-data<-WSS28qnm100
-WSS28qnm100<-MM2Qpress(data)
-WSS28qnm100<-dput(WSS28qnm100)
-WSS28qnm100<-parse.digraph(WSS28qnm100)
+data<-WSS28qnm50
+WSS28qnm50<-MM2Qpress(data)
+WSS28qnm50<-dput(WSS28qnm50)
+WSS28qnm50<-parse.digraph(WSS28qnm50)
 
 # write.dia(WSS28qnm10Model, file="WSS28test.dia", width=8, height=2, self=T)
 
-WSS28qnm100el<-enforce.limitation(WSS28qnm100)
+#enforce
+# WSS28qnm100el<-enforce.limitation(WSS28qnm100)
 
 ## Examine unweighted adjacency matrix
-A <- adjacency.matrix(WSS28qnm100el)
-#A
+A <- adjacency.matrix(WSS28qnm50)
+# A <- adjacency.matrix(WSS28qnm50el)
+
 
 ## Function to generate the community matrix
-s <- community.sampler(WSS28qnm100el)
+s <- community.sampler(WSS28qnm50)
+# s <- community.sampler(WSS28qnm100el)
 
 ## Function to check the validation condition
 #press <- press.validate(GB2el,
 #                        perturb=c("Forage_Fish"=-1),
 #                        monitor=c("Commercial_Pelagic_Fishery"=1))
 #Press/Perturbation with decrease forage fish and no monitoring)
-press <- press.validate(WSS28qnm100el,
-                        perturb=c("Fishery"=-1), monitor=F)
+press <- press.validate(WSS28qnm50,
+                        perturb=c("Phytoplankton"=1), monitor=F)
 
 ## Function to define the perturbation scenario
-impact <- press.impact(WSS28qnm100el,perturb=c("Fishery"=-1))
+impact <- press.impact(WSS28qnm50,perturb=c("Phytoplankton"=1))
 ## Use 10000 simulations
 n.sims <- 1000
 results <- 0
@@ -642,14 +753,14 @@ while(i < n.sims) {
 }
 
 ## Print results
-rownames(results) <- levels(WSS28qnm100el$From)
+rownames(results) <- levels(WSS28qnm50$From)
 colnames(results) <- c('-','0','+')
 #results
 
 ##save results
-WSS28qnm100_Fishery_down<-results
-write.csv(WSS28qnm100_Fishery_down, file="WSS28100_Fishery_down.csv")
-save(WSS28qnm100_Fishery_down, file="WSS28100_Fishery_down.RData")
+WSS28qnm50_phyto_down<-results
+write.csv(WSS28qnm50_phyto_down, file="WSS2850nolimit_phyto_up.csv")
+save(WSS28qnm50_phyto_down, file="WSS2850nolimit_phyto_up.RData")
 
 
 ```
@@ -1129,12 +1240,14 @@ for(j in seq_along(q.models)){
 ## gather results
 ```{r}
 
+#gather positive simulation results
 WSS28.results_pos<-WSS28.results %>%
                     filter(Outcome=="Positive") %>%
     unite("model_ID", Group:Direction, remove=FALSE) %>%
     select(!2:5)%>%
               pivot_longer(!model_ID, names_to = "species", values_to = "pos")
 
+#gather neutral simulation results, calculate half
 WSS28.results_neu<-WSS28.results %>%
                     filter(Outcome=="Neutral")%>%
 unite("model_ID", Group:Direction, remove=FALSE) %>%
@@ -1142,19 +1255,21 @@ unite("model_ID", Group:Direction, remove=FALSE) %>%
               pivot_longer(!model_ID, names_to = "species", values_to = "neu") %>%
             mutate(half_neu=neu/2)
 
-
+#join positive and neutral simulations
 WSS28.results_posneu<-left_join(WSS28.results_pos, WSS28.results_neu) %>%
                     mutate(result=pos+half_neu) %>%
                     # mutate(result=(positive+500)/2) %>%
                     select(model_ID, species,result)%>%
-                    pivot_wider(names_from=species, values_from=result, names_vary='slowest')
-    
+   
+                     pivot_wider(names_from=species, values_from=result, names_vary='slowest')
+#create columns that match with QNM results    
 WSS28.cols<-WSS28.results %>%
             filter(Outcome=="Positive") %>%
             select(1:2)
             
 WSS28.results.2<-bind_cols(WSS28.cols, WSS28.results_posneu)
 
+#align results, correct for differences in spelling
 WSS28.results_ecos<-WSS28.results.2 %>% 
     mutate(
         Direction=case_match(Direction,"Plus" ~ "plus", "Minus" ~ "minus"), 
@@ -1175,14 +1290,14 @@ WSS28.results_ecos<-WSS28.results.2 %>%
 #     unite("model_ID", Group:Direction, remove=FALSE) 
 
                     
-
+#Bind Ecosense and QNM results
 WSS28_results_ecosQNM<-bind_rows(WSS28.results_ecos, WSS28_QNM_results_compiled_tr)
 
 saveRDS(WSS28_results_ecosQNM, "~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/WSS28_results_ecosQNM_wfishery.RDS")
 
 ```
 
-## Graphing ecosense and qnm
+## Graphing ecosense and qnm (THIS IS OUTDATED)
 ```{r}
 library(reshape2)
 library(ggplot2)
@@ -1401,7 +1516,7 @@ p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
 
 ```
 
-## graphing combined plots
+## Graphing combined plots
 ```{r}
 library(reshape2)
 library(ggplot2)
