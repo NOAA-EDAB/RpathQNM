@@ -1512,76 +1512,9 @@ p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
         axis.title.y=element_blank(),
         axis.text.x=element_text (angle=-90, hjust=0) 
         )
-
-
-```
-
-## Graphing combined plots
-```{r}
-library(reshape2)
-library(ggplot2)
-library(gridExtra)
-require(tidyverse)
-require(grid)
-
-WSS28_results_ecosQNM <- readRDS("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/WSS28_results_ecosQNM_wfishery.RDS")
-
-
-ecoQNMresults<-WSS28_results_ecosQNM %>%
-                unite("scenario", Group:Direction, remove=FALSE ) %>%
-                unite("Model_name", Model:model_links, remove=FALSE)
-
-ecoQNMresults_long<-ecoQNMresults %>%
-                    pivot_longer (cols= 5:32, names_to="node" ) %>%
-                   mutate(sign=value) %>%
-                    mutate(sign=case_when(sign >= 666 ~ "positive",
-                                          sign <666 & sign >=333~ "zero",
-                                          sign <333 ~ "negative")) %>%
-                    # mutate(fill=value) %>%
-                    mutate(scaled_value= (abs(value-500)))
-                   
-
-
-            
-# 
-# ecoQNMresults_long$fill[ecoQNMresults_long$fill >800] <- "strong"
-# ecoQNMresults_long$fill[ecoQNMresults_long$fill >600 & ecoQNMresults_long$fill <=800] <- "weak"
-# ecoQNMresults_long$fill[ecoQNMresults_long$fill >400 & ecoQNMresults_long$fill <=600] <- "weak"
-# ecoQNMresults_long$fill[ecoQNMresults_long$fill >200 & ecoQNMresults_long$fill <=400] <- "weak"
-# ecoQNMresults_long$fill[ecoQNMresults_long$fill <=200] <- "strong"
-
-
-  
-  ########################
-# Plot up responses as bubble plots 
-dat_fishplus<- ecoQNMresults_long %>% 
-                filter(scenario=="Fishery_plus")
+-------------------------------------------
     
-
-p_fishplus<- ggplot(dat_fishplus)+
-  geom_point(aes(y=fct_inorder(node), x=Model_name,cex=scaled_value, 
-                 pch=sign, color=sign, fill=sign)) + 
-    # pch=sign, color=sign, fill=fill)) + 
-  scale_color_manual( values=c("paleturquoise4","goldenrod3","black", "white"))+
-            scale_shape_manual(values=c(25,24,4)) + 
-  scale_fill_manual(values=c("paleturquoise4","goldenrod3", "black", "white")) + 
-    labs(title="fishery +")+
-
-  theme_bw() +
-  theme(axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-     
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.x=element_text (angle=-90, hjust=0),
-        legend.position="none"
-        )
-
-
-
-dat_fishminus<- ecoQNMresults_long %>% 
+    dat_fishminus<- ecoQNMresults_long %>% 
                 filter(scenario=="Fishery_minus")
 
 p_fishminus<- ggplot(dat_fishminus)+
@@ -1589,7 +1522,7 @@ p_fishminus<- ggplot(dat_fishminus)+
                  pch=sign, color=sign, fill=sign)) + 
     # pch=sign, color=sign, fill=fill)) + 
   scale_color_manual( values=c("paleturquoise4","goldenrod3","black"))+
-            scale_shape_manual(values=c(25,24,4)) + 
+            scale_shape_manual(values=c(25, 24)) + 
   scale_fill_manual(values=c("paleturquoise4","goldenrod3", "black")) + 
  labs(title="fishery -")+
   theme_bw() +
@@ -1742,9 +1675,286 @@ p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
         legend.position="none"
         )
 
+
+```
+
+## Graphing combined plots
+```{r}
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+require(tidyverse)
+require(grid)
+library(here)
+
+
+load("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/all.results.rda")
+
+group_order<-c("Detritus", "Discards", "Phytoplankton", "Microflora", "Microzoop", "Mesozoop", "Macrozoop", "Gelatinous zoop", "Meiofauna", "Worms", "Other molluscs", "Bivalves", "Shrimps", "Small crab other arthropoda", "Megabenthos", "Squids", "Other pelagic mesopelagic", "Small pelagics", "Skates", "L benthivores", "D benthivores", "D piscivores", "Large pelagics", "Sharks", "Sea birds", "Seals", "Toothed cetaceans", "Whales", "Fishery")
+
+model_order<-c("Rpath",
+                             "QNM_1",
+                           "QNM_2",
+                             "QNM_3",
+                             "QNM_4",
+                             "QNM_5",
+                             "QNM_6")
+  
+all.results<-as.tibble(all.results)
+# Plot up responses as bubble plots 
+
+dat_fishplus<- all.results %>% 
+                filter(Scenario=="Fishery_up")    
+
+
+dat_fishplus<-dat_fishplus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_fishplus<- ggplot(dat_fishplus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Fishery +")+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+
+
+dat_fishminus<- all.results %>% 
+                filter(Scenario=="Fishery_down")    
+
+
+dat_fishminus<-dat_fishminus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_fishminus<- ggplot(dat_fishminus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Fishery -")+
+    
+  
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+
+dat_sealplus<- all.results %>% 
+                filter(Scenario=="Seals_up")    
+
+
+dat_sealplus<-dat_sealplus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_sealplus<- ggplot(dat_sealplus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Seal +")+
+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+
+dat_sealminus<- all.results %>% 
+                filter(Scenario=="Seals_down")    
+
+
+dat_sealminus<-dat_sealminus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_sealminus<- ggplot(dat_sealminus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Seals -")+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+
+dat_smallpelagicsplus<- all.results %>% 
+                filter(Scenario=="Spelagics_up")    
+
+
+dat_smallpelagicsplus<-dat_smallpelagicsplus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_smallpelagicsplus<- ggplot(dat_smallpelagicsplus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Small pelagics +")+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+dat_smallpelagicsminus<- all.results %>% 
+                filter(Scenario=="Spelagics_down")    
+
+
+dat_smallpelagicsminus<-dat_smallpelagicsminus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_smallpelagicsminus<- ggplot(dat_smallpelagicsminus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Small pelagics -")+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+dat_phytoplanktonplus<- all.results %>% 
+                filter(Scenario=="Phytoplankton_up")    
+
+
+dat_phytoplanktonplus<-dat_phytoplanktonplus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Phytoplankton +")+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
+
+dat_phytoplanktonminus<- all.results %>% 
+                filter(Scenario=="Phytoplankton_down")    
+
+
+dat_phytoplanktonminus<-dat_phytoplanktonminus %>%
+     arrange(match(Group, group_order))%>% 
+    arrange(match(Model_ID, model_order))
+    
+
+p_phytoplanktonminus<- ggplot(dat_phytoplanktonminus)+
+  geom_point(aes(y=fct_inorder(Group), x=fct_inorder(Model_ID),cex=Size, 
+                 pch=Symbol, color=Symbol, fill=Symbol)) + 
+    # pch=sign, color=sign, fill=fill)) + 
+  scale_color_manual( values=c( "black",  "paleturquoise4","black", "goldenrod3"))+
+            scale_shape_manual(values=c(4, 25, 20,24)) + 
+  scale_fill_manual(values=c( "black",  "paleturquoise4","black", "goldenrod3")) + 
+    labs(title="Phytoplankton -")+
+
+  theme_bw() +
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+     
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.x=element_text (angle=-90, hjust=0),
+        legend.position="none"
+        )
+
 grid.newpage()
 
-jpeg(filename="RpathQNM_combined_plots_wfishery_thirds.jpeg", width=20, height=15, units="in", quality=100,res=600)
+jpeg(filename="RpathQNM_combined_plots_neut_mix.jpeg", width=20, height=15, units="in", quality=100,res=600)
 grid.arrange(p_phytoplanktonplus, p_smallpelagicsplus, p_sealplus, p_fishplus, p_phytoplanktonminus, p_smallpelagicsminus, p_sealminus, p_fishminus, ncol = 4)
 
 ```
