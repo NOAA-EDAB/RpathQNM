@@ -465,10 +465,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Seals"=-1), monitor=F)
+                          perturb=c("Phytoplankton"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Seals"=-1))
+  impact <- press.impact(q.models[[j]],perturb=c("Phytoplankton"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -491,8 +491,8 @@ for(j in seq_along(q.models)){
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-     save(results, file=paste0("WSS28","results_neu", j,"Seals_down",".RData"))
-    write.csv(results, paste0("WSS28","results_neu", j,"Seals_down",".csv"))
+     save(results, file=paste0("WSS28","results_neu", j,"Phytoplankton_up",".RData"))
+    write.csv(results, paste0("WSS28","results_neu", j,"Phytoplankton_up",".csv"))
     
 
     
@@ -1897,7 +1897,7 @@ dat_phytoplanktonplus<- all.results %>%
 
 dat_phytoplanktonplus<-dat_phytoplanktonplus %>%
      arrange(match(Group, group_order))%>% 
-    arrange(match(Model_ID, model_order))
+    arrange(match(Model_ID, model_order)) 
     
 
 p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+

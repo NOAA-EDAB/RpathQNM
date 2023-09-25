@@ -1,15 +1,29 @@
 "","-","0","+"
-"D piscivores",166,676,158
-"Detritus",119,772,109
-"Fishery",79,828,93
-"Macrozoop",67,871,62
-"Meiofauna",39,898,63
-"Mesozoop",43,915,42
-"Microzoop",34,943,23
-"Other molluscs",24,942,34
-"Pair",0,0,1000
+"Bivalves",0,0,1000
+"D piscivores",95,805,100
+"Detritus",51,882,67
+"Discards",58,874,68
+"Fishery",8,986,6
+"Gelatinous zoop",0,0,1000
+"L benthivores",155,722,123
+"Large pelagics",67,848,85
+"Macrozoop",76,866,58
+"Megabenthos",11,980,9
+"Meiofauna",60,883,57
+"Mesozoop",0,0,1000
+"Microflora",0,0,1000
+"Microzoop",1000,0,0
+"Other molluscs",0,1000,0
+"Other pelagic mesopelagic",0,0,1000
 "Phytoplankton",0,0,1000
 "Sea birds",0,1000,0
-"Sharks",0,1000,0
-"Small crab other arthropoda",0,1000,0
-"Small pelagics",0,1000,0
+"Seals",67,848,85
+"Sharks",4,984,12
+"Shrimps",62,876,62
+"Skates",9,984,7
+"Small crab other arthropoda",68,874,58
+"Small pelagics",67,848,85
+"Squids",68,847,85
+"Toothed cetaceans",6,986,8
+"Whales",73,855,72
+"Worms",71,875,54
