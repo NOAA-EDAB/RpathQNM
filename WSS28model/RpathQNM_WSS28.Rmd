@@ -1686,20 +1686,34 @@ library(gridExtra)
 require(tidyverse)
 require(grid)
 library(here)
+require(stringr)
 
 
 load("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/all.results_noneut.rda")
 
 group_order<-c("Detritus", "Discards", "Phytoplankton", "Microflora", "Microzoop", "Mesozoop", "Macrozoop", "Gelatinous zoop", "Meiofauna", "Worms", "Other molluscs", "Bivalves", "Shrimps", "Small crab other arthropoda", "Megabenthos", "Squids", "Other pelagic mesopelagic", "Small pelagics", "Skates", "L benthivores", "D benthivores", "D piscivores", "Large pelagics", "Sharks", "Sea birds", "Seals", "Toothed cetaceans", "Whales", "Fishery")
 
-model_order<-c("Rpath","QNM_6",
-                             "QNM_1",
-                           "QNM_2",
-                             "QNM_3",
-                             "QNM_4",
-                             "QNM_5")
+
+
+model_order<-c("Rpath","QNM_0",
+                             "QNM_10",
+                           "QNM_20",
+                             "QNM_30",
+                             "QNM_40",
+                             "QNM_50")
   
 all.results_noneut<-as.tibble(all.results_noneut)
+
+
+all.results_noneut<-all.results_noneut%>%
+                    mutate_if(is.character, str_replace_all, pattern="QNM_1", replacement="QNM_10") %>%
+    mutate_if(is.character, str_replace_all, pattern="QNM_2", replacement="QNM_20") %>%
+    mutate_if(is.character, str_replace_all, pattern="QNM_3", replacement="QNM_30") %>%
+    mutate_if(is.character, str_replace_all, pattern="QNM_4", replacement="QNM_40") %>%
+    mutate_if(is.character, str_replace_all, pattern="QNM_5", replacement="QNM_50") %>%
+    mutate_if(is.character, str_replace_all, pattern="QNM_6", replacement="QNM_0") 
+
+
 # Plot up responses as bubble plots 
 
 dat_fishplus<- all.results_noneut %>% 
@@ -1953,8 +1967,27 @@ p_phytoplanktonminus<- ggplot(dat_phytoplanktonminus)+
 
 grid.newpage()
 
-jpeg(filename="RpathQNM_combined_plots_neut_mix_reordered.jpeg", width=20, height=15, units="in", quality=100,res=600)
+jpeg(filename="RpathQNM_combined_plots_neut_mix_reordered_reum.jpeg", width=20, height=15, units="in", quality=100,res=600)
 grid.arrange(p_phytoplanktonplus, p_smallpelagicsplus, p_sealplus, p_fishplus, p_phytoplanktonminus, p_smallpelagicsminus, p_sealminus, p_fishminus, ncol = 4)
+
+```
+
+##calculate outdegrees
+```{r}
+
+#for perturbed nodes in all QNM models
+library(tidyverse); library(here)
+
+#QNM results
+files <- as.data.table(dir(here::here('WSS28model', 'old stuff')))
+
+mod<-list(WSS28qnm10, WSS28qnm20, WSS28qnm30, WSS28qnm40, WSS28qnm50, WSS28qnm100)
+
+outd_QNM_10_p<-WSS28qnm10 %>% 
+                select ("Phytoplankton") %>%
+                count(Phytoplankton)
+    
+                
 
 ```
 
