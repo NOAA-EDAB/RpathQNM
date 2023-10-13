@@ -1972,7 +1972,7 @@ grid.arrange(p_phytoplanktonplus, p_smallpelagicsplus, p_sealplus, p_fishplus, p
 
 ```
 
-##calculate outdegrees
+##calculate outdegrees 
 ```{r}
 
 #for perturbed nodes in all QNM models
@@ -1981,13 +1981,58 @@ library(tidyverse); library(here)
 #QNM results
 files <- as.data.table(dir(here::here('WSS28model', 'old stuff')))
 
-mod<-list(WSS28qnm10, WSS28qnm20, WSS28qnm30, WSS28qnm40, WSS28qnm50, WSS28qnm100)
+Model_ID<-c("Rpath", "QNM_0", "QNM_10", "QNM_20", "QNM_30", "QNM_40", "QNM_50")
 
-outd_QNM_10_p<-WSS28qnm10 %>% 
-                select ("Phytoplankton") %>%
-                count(Phytoplankton)
-    
+outd_qnm_10<-WSS28qnm10 
+outd_qnm_10[outd_qnm_10>0]<-1
+outd_qnm_10[outd_qnm_10<0]<-0
+
+outd_qnm_20<-WSS28qnm20 
+outd_qnm_20[outd_qnm_20>0]<-1
+outd_qnm_20[outd_qnm_20<0]<-0
+
+outd_qnm_30<-WSS28qnm30 
+outd_qnm_30[outd_qnm_30>0]<-1
+outd_qnm_30[outd_qnm_30<0]<-0
+
+outd_qnm_40<-WSS28qnm40 
+outd_qnm_40[outd_qnm_40>0]<-1
+outd_qnm_40[outd_qnm_40<0]<-0
+
+outd_qnm_50<-WSS28qnm50 
+outd_qnm_50[outd_qnm_50>0]<-1
+outd_qnm_50[outd_qnm_50<0]<-0
+
+outd_qnm_0<-WSS28qnm100
+outd_qnm_0[outd_qnm_0>0]<-1
+outd_qnm_0[outd_qnm_0<0]<-0
+
+
+
+outd_QNM_10p<-outd_qnm_10%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
+
+outd_QNM_20p<-outd_qnm_20%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
+
+outd_QNM_30p<-outd_qnm_30%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
+
+outd_QNM_40p<-outd_qnm_40%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
+
+outd_QNM_50p<-outd_qnm_50%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
+
+outd_QNM_0p<-outd_qnm_0%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
                 
+ind_rpathQNM<-rbind(outd_QNM_0p, outd_QNM_0p, outd_QNM_10p, outd_QNM_20p, outd_QNM_30p, outd_QNM_40p, outd_QNM_50p)
+
+ind_rpathQNM<-cbind(ind_rpathQNM, Model_ID)
+
+degrees<-rep(c("indegree", "outdegree", "in_out_degree"), each=7)
+
+alldeg_rpathQNM<-rbind(ind_rpathQNM, outd_rpathQNM, deg_rpathQNM)
+
+alldeg_rpathQNM<-cbind(alldeg_rpathQNM, degrees)
+
+
+save(alldeg_rpathQNM, file="data/alldegrees_rpathQNM.RData")
 
 ```
 
