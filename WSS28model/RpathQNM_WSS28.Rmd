@@ -465,10 +465,10 @@ for(j in seq_along(q.models)){
   #                        monitor=c("Commercial_Pelagic_Fishery"=1))
   #Press/Perturbation with decrease forage fish and no monitoring)
   press <- press.validate(q.models[[j]],
-                          perturb=c("Phytoplankton"=1), monitor=F)
+                          perturb=c("Seals"=1), monitor=F)
   
   ## Function to define the perturbation scenario
-  impact <- press.impact(q.models[[j]],perturb=c("Phytoplankton"=1))
+  impact <- press.impact(q.models[[j]],perturb=c("Seals"=1))
   ## Use 1000 simulations
   n.sims <- 1000
   results <- 0
@@ -485,14 +485,14 @@ for(j in seq_along(q.models)){
     
     ## Monitor impact post press
     imp <- impact(W)
-    # imp[abs(imp)<1e-07]=0 #added to remove small perturbations
+ imp[abs(imp)<1e-07]=0 #added to remove small perturbations
     results <- results + outer(sign(imp),-1:1,'==')
     i <- i+1
     
     rownames(results) <- levels(q.models[[j]]$From)
     colnames(results) <- c('-','0','+')
-     save(results, file=paste0("WSS28","results_neu", j,"Phytoplankton_up",".RData"))
-    write.csv(results, paste0("WSS28","results_neu", j,"Phytoplankton_up",".csv"))
+     save(results, file=paste0("WSS28","results", j,"Seals_up",".RData"))
+    write.csv(results, paste0("WSS28","results", j,"Seals_up",".csv"))
     
 
     
@@ -1688,22 +1688,21 @@ require(grid)
 library(here)
 
 
-load("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/all.results.rda")
+load("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/all.results_noneut.rda")
 
 group_order<-c("Detritus", "Discards", "Phytoplankton", "Microflora", "Microzoop", "Mesozoop", "Macrozoop", "Gelatinous zoop", "Meiofauna", "Worms", "Other molluscs", "Bivalves", "Shrimps", "Small crab other arthropoda", "Megabenthos", "Squids", "Other pelagic mesopelagic", "Small pelagics", "Skates", "L benthivores", "D benthivores", "D piscivores", "Large pelagics", "Sharks", "Sea birds", "Seals", "Toothed cetaceans", "Whales", "Fishery")
 
-model_order<-c("Rpath",
+model_order<-c("Rpath","QNM_6",
                              "QNM_1",
                            "QNM_2",
                              "QNM_3",
                              "QNM_4",
-                             "QNM_5",
-                             "QNM_6")
+                             "QNM_5")
   
-all.results<-as.tibble(all.results)
+all.results_noneut<-as.tibble(all.results_noneut)
 # Plot up responses as bubble plots 
 
-dat_fishplus<- all.results %>% 
+dat_fishplus<- all.results_noneut %>% 
                 filter(Scenario=="Fishery_up")    
 
 
@@ -1735,7 +1734,7 @@ p_fishplus<- ggplot(dat_fishplus)+
 
 
 
-dat_fishminus<- all.results %>% 
+dat_fishminus<- all.results_noneut %>% 
                 filter(Scenario=="Fishery_down")    
 
 
@@ -1768,7 +1767,7 @@ p_fishminus<- ggplot(dat_fishminus)+
         )
 
 
-dat_sealplus<- all.results %>% 
+dat_sealplus<- all.results_noneut %>% 
                 filter(Scenario=="Seals_up")    
 
 
@@ -1800,7 +1799,7 @@ p_sealplus<- ggplot(dat_sealplus)+
         )
 
 
-dat_sealminus<- all.results %>% 
+dat_sealminus<- all.results_noneut %>% 
                 filter(Scenario=="Seals_down")    
 
 
@@ -1831,7 +1830,7 @@ p_sealminus<- ggplot(dat_sealminus)+
         )
 
 
-dat_smallpelagicsplus<- all.results %>% 
+dat_smallpelagicsplus<- all.results_noneut %>% 
                 filter(Scenario=="Spelagics_up")    
 
 
@@ -1861,7 +1860,7 @@ p_smallpelagicsplus<- ggplot(dat_smallpelagicsplus)+
         legend.position="none"
         )
 
-dat_smallpelagicsminus<- all.results %>% 
+dat_smallpelagicsminus<- all.results_noneut %>% 
                 filter(Scenario=="Spelagics_down")    
 
 
@@ -1891,7 +1890,7 @@ p_smallpelagicsminus<- ggplot(dat_smallpelagicsminus)+
         legend.position="none"
         )
 
-dat_phytoplanktonplus<- all.results %>% 
+dat_phytoplanktonplus<- all.results_noneut %>% 
                 filter(Scenario=="Phytoplankton_up")    
 
 
@@ -1922,7 +1921,7 @@ p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
         )
 
 
-dat_phytoplanktonminus<- all.results %>% 
+dat_phytoplanktonminus<- all.results_noneut %>% 
                 filter(Scenario=="Phytoplankton_down")    
 
 
@@ -1954,7 +1953,8 @@ p_phytoplanktonminus<- ggplot(dat_phytoplanktonminus)+
 
 grid.newpage()
 
-jpeg(filename="RpathQNM_combined_plots_neut_mix.jpeg", width=20, height=15, units="in", quality=100,res=600)
+jpeg(filename="RpathQNM_combined_plots_neut_mix_reordered.jpeg", width=20, height=15, units="in", quality=100,res=600)
 grid.arrange(p_phytoplanktonplus, p_smallpelagicsplus, p_sealplus, p_fishplus, p_phytoplanktonminus, p_smallpelagicsminus, p_sealminus, p_fishminus, ncol = 4)
 
 ```
+
