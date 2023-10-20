@@ -11,7 +11,7 @@ for(isim in 1:nrow(files)){
     
     #Create output data.tablereg
     model <- gsub(".*neu(.*)\\..*", "\\1", files[isim, ])
-    model_ID <- paste('QNM', substr(model, 1, 1), sep = '_')
+    model_ID <- paste('QNM_', substr(model, 1, 1), 0, sep = '')
     scenario <- substr(model, 2, 100)
     groups <- dimnames(results)[[1]]
     neg <- results[, 1]
@@ -47,6 +47,9 @@ for(isim in 1:nrow(files)){
     all.results <- rbindlist(list(all.results, out))
 
 }
+
+#Change QNM_60 to QNM_0
+all.results[Model_ID == 'QNM_60', Model_ID := 'QNM_0']
 
 #Ecosense results
 load(here::here('data', 'WSS28.results.rda'))
