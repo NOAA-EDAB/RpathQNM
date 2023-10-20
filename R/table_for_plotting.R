@@ -41,7 +41,7 @@ for(isim in 1:nrow(files)){
     out[Size > 900, Strength := 'Strong']
     
     #Drop extra columns
-    out[, c('Neg', 'Neu', 'Pos') := NULL]
+    #out[, c('Neg', 'Neu', 'Pos') := NULL]
     
     #join
     all.results <- rbindlist(list(all.results, out))
@@ -87,10 +87,11 @@ for(isp in 1:length(groups)){
     sp.result[Size > 900, Strength := 'Strong']
     
     #Drop extra columns
-    sp.result[, c('Negative', 'Neutral', 'Positive', 'Direction') := NULL]
+    setnames(sp.result, c('Negative', 'Neutral', 'Positive'), c('Neg', 'Neu', 'Pos'))
+    sp.result[, 'Direction' := NULL]
     
     #join
-    all.results <- rbindlist(list(all.results, sp.result))
+    all.results <- rbindlist(list(all.results, sp.result), use.names = T)
 }
 
 data.table::setkey(all.results, 'Model_ID', 'Scenario', 'Group')                      
