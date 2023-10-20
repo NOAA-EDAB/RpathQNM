@@ -15,4 +15,5 @@ ggplot(agg.table,
     scale_fill_viridis_c(direction = -1) +
     facet_wrap(~Scenario) +
     labs(x = 'Model ID', y = 'Model ID')
-    
+
+ggsave(here::here('output', 'Comparison.png'), height = 8, width = 15)    
