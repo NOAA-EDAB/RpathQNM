@@ -11,7 +11,7 @@ for(isim in 1:nrow(files)){
     
     #Create output data.tablereg
     model <- gsub(".*neu(.*)\\..*", "\\1", files[isim, ])
-    model_ID <- paste('QNM', substr(model, 1, 1), sep = '_')
+    model_ID <- paste('QNM_', substr(model, 1, 1), 0, sep = '')
     scenario <- substr(model, 2, 100)
     groups <- dimnames(results)[[1]]
     neg <- results[, 1]
@@ -41,12 +41,15 @@ for(isim in 1:nrow(files)){
     out[Size > 900, Strength := 'Strong']
     
     #Drop extra columns
-    out[, c('Neg', 'Neu', 'Pos') := NULL]
+    #out[, c('Neg', 'Neu', 'Pos') := NULL]
     
     #join
     all.results <- rbindlist(list(all.results, out))
 
 }
+
+#Change QNM_60 to QNM_0
+all.results[Model_ID == 'QNM_60', Model_ID := 'QNM_0']
 
 #Ecosense results
 load(here::here('data', 'WSS28.results.rda'))
@@ -84,10 +87,11 @@ for(isp in 1:length(groups)){
     sp.result[Size > 900, Strength := 'Strong']
     
     #Drop extra columns
-    sp.result[, c('Negative', 'Neutral', 'Positive', 'Direction') := NULL]
+    setnames(sp.result, c('Negative', 'Neutral', 'Positive'), c('Neg', 'Neu', 'Pos'))
+    sp.result[, 'Direction' := NULL]
     
     #join
-    all.results <- rbindlist(list(all.results, sp.result))
+    all.results <- rbindlist(list(all.results, sp.result), use.names = T)
 }
 
 data.table::setkey(all.results, 'Model_ID', 'Scenario', 'Group')                      
