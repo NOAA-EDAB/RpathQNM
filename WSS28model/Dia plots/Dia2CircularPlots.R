@@ -35,6 +35,6 @@ circlize::chordDiagram(fullmod)
 circlize::chordDiagram(smallestmod)
 
 
-# standardize groups and colors across both models
+# standardize group positions, widths, and colors across both models
 
 
