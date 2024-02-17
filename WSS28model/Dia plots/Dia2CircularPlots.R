@@ -27,7 +27,9 @@ fullmod <- adjacency.matrix(edges, labels=TRUE)
 
 feweredges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS1.dia"))
 
-smallestmod <- adjacency.matrix(feweredges, labels=TRUE)
+fewestedges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS5.dia"))
+
+smallestmod <- adjacency.matrix(fewestedges, labels=TRUE)
 
 # test plots
 
