@@ -55,6 +55,7 @@ detritus <- c("Detritus", "Discards")
 mod_C <- brewer.pal(9,"Set1")
 
 # Function for any of these models
+# This is Geret's original pdf maker
 
 pdfmod <- function(modadjmat, plotname){
     
@@ -142,6 +143,8 @@ pdfmod <- function(modadjmat, plotname){
 pdfmod(fullmod, "Fullmodel")
 pdfmod(smallestmod, "Smallmodel")
 
+# this function plots individual models on their own scale, not great for comparisons
+
 plotmod <- function(modadjmat, plotname){
     
     mod_Colors <- data.frame(row.names(modadjmat))
@@ -227,6 +230,9 @@ plotmod <- function(modadjmat, plotname){
 
 plotmod(fullmod, "Full model")
 plotmod(smallestmod, "Smallest model")
+
+
+# This function plots the full model but only colors links in the compared model.
 
 plotdiff <- function(full, comp, compname){
     
