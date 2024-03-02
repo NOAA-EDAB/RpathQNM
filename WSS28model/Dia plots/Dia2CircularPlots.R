@@ -25,8 +25,10 @@ edges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS6.dia"))
 ## Examine unweighted adjacency matrix
 fullmod <- adjacency.matrix(edges, labels=TRUE)
 
+fullmodnoself <- adjacency.matrix(edges, labels=TRUE)
+
 ## remove self loops
-diag(fullmod) <- 0
+diag(fullmodnoself) <- 0
 
 feweredges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS1.dia"))
 
@@ -34,8 +36,10 @@ fewestedges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS5.dia"))
 
 smallestmod <- adjacency.matrix(fewestedges, labels=TRUE)
 
+smallestmodnoself <- adjacency.matrix(fewestedges, labels=TRUE)
+
 ## remove self loops
-diag(smallestmod) <- 0
+diag(smallestmodnoself) <- 0
 
 # test plots
 
@@ -146,8 +150,8 @@ pdfmod <- function(modadjmat, plotname){
     
 }
 
-pdfmod(fullmod, "Fullmodel")
-pdfmod(smallestmod, "Smallmodel")
+#pdfmod(fullmod, "Fullmodel")
+#pdfmod(smallestmod, "Smallmodel")
 
 # this function plots individual models on their own scale, not great for comparisons
 
@@ -234,8 +238,9 @@ plotmod <- function(modadjmat, plotname){
     
 }
 
-plotmod(fullmod, "Full-model-no-diag")
-plotmod(smallestmod, "Smallest model")
+#plotmod(fullmod, "Full model")
+#plotmod(fullmodnoself, "Full-model-no-diag")
+#plotmod(smallestmod, "Smallest model")
 
 
 # This function plots the full model but only colors links in the compared model.
@@ -346,4 +351,6 @@ plotdiff <- function(full, comp, compname){
     
 }
 
-plotdiff(fullmod, smallestmod, "Smallest-model-no-diag")
+plotdiff(fullmod, fullmodnoself, "Full-model-no-diag")
+#plotdiff(fullmod, smallestmod, "Smallest-model")
+plotdiff(fullmod, smallestmodnoself, "Smallest-model-no-diag")
