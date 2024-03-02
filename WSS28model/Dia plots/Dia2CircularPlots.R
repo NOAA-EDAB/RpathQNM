@@ -25,11 +25,17 @@ edges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS6.dia"))
 ## Examine unweighted adjacency matrix
 fullmod <- adjacency.matrix(edges, labels=TRUE)
 
+## remove self loops
+diag(fullmod) <- 0
+
 feweredges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS1.dia"))
 
 fewestedges <- QPress::model.dia(here::here("WSS28model/Dia plots/WSS5.dia"))
 
 smallestmod <- adjacency.matrix(fewestedges, labels=TRUE)
+
+## remove self loops
+diag(smallestmod) <- 0
 
 # test plots
 
@@ -228,7 +234,7 @@ plotmod <- function(modadjmat, plotname){
     
 }
 
-plotmod(fullmod, "Full model")
+plotmod(fullmod, "Full-model-no-diag")
 plotmod(smallestmod, "Smallest model")
 
 
@@ -340,4 +346,4 @@ plotdiff <- function(full, comp, compname){
     
 }
 
-plotdiff(fullmod, smallestmod, "Smallest model")
+plotdiff(fullmod, smallestmod, "Smallest-model-no-diag")
