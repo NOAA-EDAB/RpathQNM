@@ -77,7 +77,7 @@ pdfmod <- function(modadjmat, plotname){
     mod_Colors$Color[mod_Colors$Focus%in%benthos] <- mod_C[3]
     mod_Colors$Color[mod_Colors$Focus%in%fish] <- mod_C[4]
     mod_Colors$Color[mod_Colors$Focus%in%smallpel] <- mod_C[1]
-    mod_Colors$Color[mod_Colors$Focus%in%birdsmammals] <- mod_C[6]
+    mod_Colors$Color[mod_Colors$Focus%in%birdsmammals] <- mod_C[5]
     mod_Colors$Color[mod_Colors$Focus%in%seals] <- mod_C[1]
     mod_Colors$Color[mod_Colors$Focus%in%fishery] <- mod_C[1]
     mod_Colors$Color[mod_Colors$Focus%in%detritus] <- mod_C[9]
@@ -142,10 +142,10 @@ pdfmod <- function(modadjmat, plotname){
         circos.text(mean(xlim),ylim[1],sector.name,facing="clockwise", niceFacing=TRUE, adj =c(0,0.5), cex=.6)
     }, bg.border=NA) )
     
-    print(legend(x=-1.1,y = 1.09,legend = c("Phytoplankton","Zooplankton","Benthos","Fish/Squid","Small pelgics","Birds/Mammals","Seals","Fishery", "Detritus"),
-                 lty= c(1,1,1,1,1,1,1,1), lwd=c(5,5,5,5,5,5,5,5),
-                 col =c(mod_C[1],mod_C[2],mod_C[3],mod_C[4],mod_C[5],mod_C[6],mod_C[7],mod_C[8], mod_C[9]), ncol=1, cex = .75, bg = NULL, box.col=NULL, bty = "n"))
-    print(title(main=paste(plotname), line=-35))
+    # print(legend(x=-1.1,y = 1.09,legend = c("Phytoplankton","Zooplankton","Benthos","Fish/Squid","Small pelgics","Birds/Mammals","Seals","Fishery", "Detritus"),
+    #              lty= c(1,1,1,1,1,1,1,1), lwd=c(5,5,5,5,5,5,5,5),
+    #              col =c(mod_C[1],mod_C[2],mod_C[3],mod_C[4],mod_C[5],mod_C[6],mod_C[7],mod_C[8], mod_C[9]), ncol=1, cex = .75, bg = NULL, box.col=NULL, bty = "n"))
+    # print(title(main=paste(plotname), line=-35))
     dev.off()
     
 }
@@ -165,7 +165,7 @@ plotmod <- function(modadjmat, plotname){
     mod_Colors$Color[mod_Colors$Focus%in%benthos] <- mod_C[3]
     mod_Colors$Color[mod_Colors$Focus%in%fish] <- mod_C[4]
     mod_Colors$Color[mod_Colors$Focus%in%smallpel] <- mod_C[1]
-    mod_Colors$Color[mod_Colors$Focus%in%birdsmammals] <- mod_C[6]
+    mod_Colors$Color[mod_Colors$Focus%in%birdsmammals] <- mod_C[5]
     mod_Colors$Color[mod_Colors$Focus%in%seals] <- mod_C[1]
     mod_Colors$Color[mod_Colors$Focus%in%fishery] <- mod_C[1]
     mod_Colors$Color[mod_Colors$Focus%in%detritus] <- mod_C[9]
@@ -230,10 +230,10 @@ plotmod <- function(modadjmat, plotname){
         circos.text(mean(xlim),ylim[1],sector.name,facing="clockwise", niceFacing=TRUE, adj =c(0,0.5), cex=.6)
     }, bg.border=NA) )
     
-    print(legend(x=-1.1,y = 1.09,legend = c("Phytoplankton","Zooplankton","Benthos","Fish/Squid","Small pelgics","Birds/Mammals","Seals","Fishery", "Detritus"),
-                 lty= c(1,1,1,1,1,1,1,1), lwd=c(5,5,5,5,5,5,5,5),
-                 col =c(mod_C[1],mod_C[2],mod_C[3],mod_C[4],mod_C[1],mod_C[6],mod_C[1],mod_C[1], mod_C[9]), ncol=1, cex = .75, bg = NULL, box.col=NULL, bty = "n"))
-    print(title(main=paste(plotname), line=-35))
+    # print(legend(x=-1.1,y = 1.09,legend = c("Phytoplankton","Zooplankton","Benthos","Fish/Squid","Small pelgics","Birds/Mammals","Seals","Fishery", "Detritus"),
+    #              lty= c(1,1,1,1,1,1,1,1), lwd=c(5,5,5,5,5,5,5,5),
+    #              col =c(mod_C[1],mod_C[2],mod_C[3],mod_C[4],mod_C[1],mod_C[6],mod_C[1],mod_C[1], mod_C[9]), ncol=1, cex = .75, bg = NULL, box.col=NULL, bty = "n"))
+    # print(title(main=paste(plotname), line=-35))
     dev.off()
     
 }
@@ -255,7 +255,7 @@ plotdiff <- function(full, comp, compname){
     mod_Colors$Color[mod_Colors$Focus%in%benthos] <- mod_C[3]
     mod_Colors$Color[mod_Colors$Focus%in%fish] <- mod_C[4]
     mod_Colors$Color[mod_Colors$Focus%in%smallpel] <- mod_C[1]
-    mod_Colors$Color[mod_Colors$Focus%in%birdsmammals] <- mod_C[6]
+    mod_Colors$Color[mod_Colors$Focus%in%birdsmammals] <- mod_C[5]
     mod_Colors$Color[mod_Colors$Focus%in%seals] <- mod_C[1]
     mod_Colors$Color[mod_Colors$Focus%in%fishery] <- mod_C[1]
     mod_Colors$Color[mod_Colors$Focus%in%detritus] <- mod_C[9]
@@ -313,7 +313,7 @@ plotdiff <- function(full, comp, compname){
     mod2_Colors$Color[mod2_Colors$Focus%in%benthos] <- mod_C[3]
     mod2_Colors$Color[mod2_Colors$Focus%in%fish] <- mod_C[4]
     mod2_Colors$Color[mod2_Colors$Focus%in%smallpel] <- mod_C[1]
-    mod2_Colors$Color[mod2_Colors$Focus%in%birdsmammals] <- mod_C[6]
+    mod2_Colors$Color[mod2_Colors$Focus%in%birdsmammals] <- mod_C[5]
     mod2_Colors$Color[mod2_Colors$Focus%in%seals] <- mod_C[1]
     mod2_Colors$Color[mod2_Colors$Focus%in%fishery] <- mod_C[1]
     mod2_Colors$Color[mod2_Colors$Focus%in%detritus] <- mod_C[9]
@@ -343,10 +343,10 @@ plotdiff <- function(full, comp, compname){
         circos.text(mean(xlim),ylim[1],sector.name,facing="clockwise", niceFacing=TRUE, adj =c(0,0.5), cex=.6)
     }, bg.border=NA) )
     
-    print(legend(x=-1.1,y = 1.09,legend = c("Phytoplankton","Zooplankton","Benthos","Fish/Squid","Small pelgics","Birds/Mammals","Seals","Fishery", "Detritus"),
-                 lty= c(1,1,1,1,1,1,1,1), lwd=c(5,5,5,5,5,5,5,5),
-                 col =c(mod_C[1],mod_C[2],mod_C[3],mod_C[4],mod_C[1],mod_C[6],mod_C[1],mod_C[1], mod_C[9]), ncol=1, cex = .75, bg = NULL, box.col=NULL, bty = "n"))
-    print(title(main=paste(compname), line=-35))
+    # print(legend(x=-1.1,y = 1.09,legend = c("Phytoplankton","Zooplankton","Benthos","Fish/Squid","Small pelgics","Birds/Mammals","Seals","Fishery", "Detritus"),
+    #              lty= c(1,1,1,1,1,1,1,1), lwd=c(5,5,5,5,5,5,5,5),
+    #              col =c(mod_C[1],mod_C[2],mod_C[3],mod_C[4],mod_C[1],mod_C[6],mod_C[1],mod_C[1], mod_C[9]), ncol=1, cex = .75, bg = NULL, box.col=NULL, bty = "n"))
+    # print(title(main=paste(compname), line=-35))
     dev.off()
     
 }
