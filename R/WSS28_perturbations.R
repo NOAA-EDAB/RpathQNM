@@ -188,7 +188,7 @@ for(irun in 1:1000){
     
     #Calculate perturbed biomass
     bio <- as.data.table(neg$annual_Biomass)
-    bio.mean.neg <- bio[41:50, lapply(.SD, mean), .SDcols = names(bio)]
+    bio.mean.neg <- bio[91:100, lapply(.SD, mean), .SDcols = names(bio)]
     
     #Calculate perturbed catch
     catch <- as.data.table(neg$annual_Catch)

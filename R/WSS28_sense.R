@@ -64,6 +64,7 @@ for (irun in 1:NUM_RUNS){
 KEPT <- which(kept==T)
 nkept <- length(KEPT)
 nkept
+#1153
 nkept/NUM_RUNS
 #0.0029
 
