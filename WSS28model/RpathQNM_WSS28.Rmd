@@ -1678,6 +1678,113 @@ p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
 
 ```
 
+
+## reorganizes the combined tables with Rpath and QNM results
+```{r}
+library(data.table); library(here)
+
+#QNM results
+files <- as.data.table(dir(here::here('WSS28model', 'data neutrals')))
+#only use .RData
+files <- files[V1 %like% '.RData']
+
+all.results <- c()
+for(isim in 1:nrow(files)){
+    load(here::here('WSS28model', 'data neutrals', files[isim, ]))
+    
+    #Create output data.tablereg
+    model <- gsub(".*neu(.*)\\..*", "\\1", files[isim, ])
+    model_ID <- paste('QNM_', substr(model, 1, 1), 0, sep = '')
+    scenario <- substr(model, 2, 100)
+    groups <- dimnames(results)[[1]]
+    neg <- results[, 1]
+    neu <- results[, 2]
+    pos <- results[, 3]
+    out <- data.table(Model_ID = model_ID,
+                      Scenario = scenario,
+                      Group = groups,
+                      Neg = neg,
+                      Neu = neu,
+                      Pos = pos)
+    
+    #Assign Negative, Neutral, Positive, or Mixed result
+    out[Neg > 600, Symbol := 'Neg']
+    out[Neu > 600, Symbol := 'Neu']
+    out[Pos > 600, Symbol := 'Pos']
+    out[is.na(Symbol), Symbol := 'Mix']
+    
+    #Assign Strength of dominant direction
+    out[Symbol == 'Neg', Size := Neg + 0.5 * Neu]
+    out[Symbol == 'Pos', Size := Pos + 0.5 * Neu]
+    out[Symbol == 'Neu', Size := 701]
+    out[Symbol == 'Mix', Size := 701]
+    
+    out[Size > 599 & Size <= 700, Strength := 'Weak']
+    out[Size > 700 & Size <= 900, Strength := 'Moderate']
+    out[Size > 900, Strength := 'Strong']
+    
+    #Drop extra columns
+    #out[, c('Neg', 'Neu', 'Pos') := NULL]
+    
+    #join
+    all.results <- rbindlist(list(all.results, out))
+
+}
+
+#Change QNM_60 to QNM_0
+all.results[Model_ID == 'QNM_60', Model_ID := 'QNM_0']
+
+#Ecosense results
+load(here::here('data', 'WSS28.results.rda'))
+
+groups <- colnames(WSS28.results)[which(!colnames(WSS28.results) %in% 
+                                            c('Group', 'Direction', 'Outcome', 'Outside'))]
+
+#Clean up names to match QNM
+WSS28.results[Direction == 'Plus',  Direction := 'up']
+WSS28.results[Direction == 'Minus', Direction := 'down']
+WSS28.results[Group == 'Small pelagics', Group := 'Spelagics']
+
+for(isp in 1:length(groups)){
+    sp.result <- data.table::dcast(WSS28.results, Group + Direction ~ Outcome, 
+                                   value.var = groups[isp])
+    sp.result[, Model_ID := 'Rpath']
+    sp.result[, Scenario := paste(Group, Direction, sep = '_')]
+    sp.result[, Group := NULL]
+    sp.result[, Group := groups[isp]]
+    
+    #Assign Negative, Neutral, Positive, or Mixed result
+    sp.result[Negative > 600, Symbol := 'Neg']
+    sp.result[Neutral  > 600, Symbol := 'Neu']
+    sp.result[Positive > 600, Symbol := 'Pos']
+    sp.result[is.na(Symbol), Symbol := 'Mix']
+    
+    #Assign Strength of dominant direction
+    sp.result[Symbol == 'Neg', Size := Negative + 0.5 * Neutral]
+    sp.result[Symbol == 'Pos', Size := Positive + 0.5 * Neutral]
+    sp.result[Symbol == 'Neu', Size := 701]
+    sp.result[Symbol == 'Mix', Size := 701]
+    
+    sp.result[Size > 599 & Size <= 700, Strength := 'Weak']
+    sp.result[Size > 700 & Size <= 900, Strength := 'Moderate']
+    sp.result[Size > 900, Strength := 'Strong']
+    
+    #Drop extra columns
+    setnames(sp.result, c('Negative', 'Neutral', 'Positive'), c('Neg', 'Neu', 'Pos'))
+    sp.result[, 'Direction' := NULL]
+    
+    #join
+    all.results <- rbindlist(list(all.results, sp.result), use.names = T)
+}
+
+data.table::setkey(all.results, 'Model_ID', 'Scenario', 'Group')                      
+
+usethis::use_data(all.results, overwrite = T)
+
+
+```
+
+
 ## Graphing combined plots
 ```{r}
 library(reshape2)
@@ -1689,7 +1796,7 @@ library(here)
 require(stringr)
 
 
-load("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/all.results_noneut.rda")
+load("~/JCT work/WGNARS/RpathtoQNM/RpathQNM/data/all.results.rda")
 
 group_order<-c("Detritus", "Discards", "Phytoplankton", "Microflora", "Microzoop", "Mesozoop", "Macrozoop", "Gelatinous zoop", "Meiofauna", "Worms", "Other molluscs", "Bivalves", "Shrimps", "Small crab other arthropoda", "Megabenthos", "Squids", "Other pelagic mesopelagic", "Small pelagics", "Skates", "L benthivores", "D benthivores", "D piscivores", "Large pelagics", "Sharks", "Sea birds", "Seals", "Toothed cetaceans", "Whales", "Fishery")
 
@@ -1702,9 +1809,9 @@ model_order<-c("Rpath","QNM_0",
                              "QNM_40",
                              "QNM_50")
   
-all.results_noneut<-as.tibble(all.results_noneut)
+all.results_noneut<-as_tibble(all.results)
 
-
+#change the naming of Model_ID, this has been fixed in table code so eleminate if need be.
 all.results_noneut<-all.results_noneut%>%
                     mutate_if(is.character, str_replace_all, pattern="QNM_1", replacement="QNM_10") %>%
     mutate_if(is.character, str_replace_all, pattern="QNM_2", replacement="QNM_20") %>%
@@ -1967,7 +2074,7 @@ p_phytoplanktonminus<- ggplot(dat_phytoplanktonminus)+
 
 grid.newpage()
 
-jpeg(filename="RpathQNM_combined_plots_neut_mix_reordered_reum.jpeg", width=20, height=15, units="in", quality=100,res=600)
+jpeg(filename="RpathQNM_combined_plots_revisedRpath_2025.jpeg", width=20, height=15, units="in", quality=100,res=600)
 grid.arrange(p_phytoplanktonplus, p_smallpelagicsplus, p_sealplus, p_fishplus, p_phytoplanktonminus, p_smallpelagicsminus, p_sealminus, p_fishminus, ncol = 4)
 
 ```
@@ -1977,17 +2084,14 @@ grid.arrange(p_phytoplanktonplus, p_smallpelagicsplus, p_sealplus, p_fishplus, p
 
 #for perturbed nodes in all QNM models
 library(tidyverse); library(here)
-
-#QNM results
-files <- as.data.table(dir(here::here('WSS28model', 'old stuff')))
-
 Model_ID<-c("Rpath", "QNM_0", "QNM_10", "QNM_20", "QNM_30", "QNM_40", "QNM_50")
 
-outd_qnm_10<-WSS28qnm10 
+outd_qnm_10<-(WSS28qnm10[,-1])
+rownames(outd_qnm_10)<-WSS28qnm10$FG
 outd_qnm_10[outd_qnm_10>0]<-1
 outd_qnm_10[outd_qnm_10<0]<-0
 
-outd_qnm_20<-WSS28qnm20 
+outd_qnm_20<-(t(SS28qnm20))
 outd_qnm_20[outd_qnm_20>0]<-1
 outd_qnm_20[outd_qnm_20<0]<-0
 
@@ -2009,7 +2113,7 @@ outd_qnm_0[outd_qnm_0<0]<-0
 
 
 
-outd_QNM_10p<-outd_qnm_10%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
+outd_QNM_10p<-outd_qnm_10%>% filter ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
 
 outd_QNM_20p<-outd_qnm_20%>% select ("Phytoplankton", "Small pelagics", "Seals", "Fishery") %>% summarize(across(Phytoplankton:Fishery, sum))
 
@@ -2033,6 +2137,5 @@ alldeg_rpathQNM<-cbind(alldeg_rpathQNM, degrees)
 
 
 save(alldeg_rpathQNM, file="data/alldegrees_rpathQNM.RData")
-
 ```
 
