@@ -1679,7 +1679,7 @@ p_phytoplanktonplus<- ggplot(dat_phytoplanktonplus)+
 ```
 
 
-## reorganizes the combined tables with Rpath and QNM results
+## Reorganizes the combined tables with Rpath and QNM results
 ```{r}
 library(data.table); library(here)
 
