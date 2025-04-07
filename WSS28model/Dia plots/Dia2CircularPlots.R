@@ -328,7 +328,14 @@ plotdiff <- function(full, comp, compname){
     
     #png(here::here(paste0(compname,".png")), width = 600, height = 600)
     #jpeg(here::here(paste0(compname,".jpeg")), width = 600, height = 600)
-    pdf(here::here(paste0(compname,".pdf")), width = 10, height = 10)
+    #pdf(here::here(paste0(compname,".pdf")), width = 10, height = 10)
+    
+    tiff(here::here(paste0(compname, ".tiff")),
+         width = 8,   # Increase width to improve detail
+         height = 8,  # Increase height to improve detail
+         units = "in",
+         res = 600)   # Increase resolution to 600 DPI for high quality
+    
     print(chordDiagram(mod_edges, directional=0,
                        grid.col = mod_Colors,
                        col = compdf,
