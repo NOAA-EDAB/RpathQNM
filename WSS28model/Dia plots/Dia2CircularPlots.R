@@ -326,7 +326,9 @@ plotdiff <- function(full, comp, compname){
         dplyr::left_join(mod2_Colors, by=c("from" = "Focus")) |>
         dplyr::select(-value)
     
-    png(here::here(paste0(compname,".png")))
+    #png(here::here(paste0(compname,".png")), width = 600, height = 600)
+    #jpeg(here::here(paste0(compname,".jpeg")), width = 600, height = 600)
+    pdf(here::here(paste0(compname,".pdf")), width = 10, height = 10)
     print(chordDiagram(mod_edges, directional=0,
                        grid.col = mod_Colors,
                        col = compdf,
